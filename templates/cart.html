@@ -1,0 +1,259 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  #cart{
+    min-height: 78.2vh;
+  }
+
+  .free-delivery-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #ffae36, #ff9d2d);
+  color: #1a1a1a;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(255, 157, 45, 0.2);
+  margin: 2rem auto 1.5rem;
+  width: 90%;
+  max-width: 800px;
+}
+
+.free-delivery-banner i {
+  font-size: 2.2rem;
+  color: #1a1a1a;
+}
+
+.free-delivery-banner h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.free-delivery-banner p {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+}
+
+
+  /* shared button style */
+  .btn-orange {
+    display:inline-block; padding:.75rem 1.4rem; background:#ff9d2d;
+    color:#1a1a1a; font-weight:700; border-radius:8px; text-decoration:none;
+    transition:background .3s;
+  }
+  .btn-orange:hover { background:#ffa94f; }
+
+  /* table */
+  .cart-table { width:90%; margin:2rem auto; border-collapse:collapse; }
+  .cart-table th, .cart-table td {
+    padding:.8rem 1rem; border-bottom:1px solid #333;
+    text-align:center; color:#eee;
+  }
+  .cart-table th { background:#1a1a1a; color:#ffae36; }
+
+  /* empty-cart block */
+  .empty-cart {
+    min-height:82.5vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; gap:1rem;
+  }
+  .empty-cart i { font-size:6rem; color:#ff9d2d; }
+  .empty-cart p { font-size:1.25rem; color:#ccc; }
+
+  .qty-bar     { display:inline-flex; align-items:center; gap:.4rem; }
+.qty-btn     { background:#ff9d2d;border:none;color:#1a1a1a;
+               width:30px;height:30px;font:700 1.2rem/1 sans-serif;
+               border-radius:6px;cursor:pointer;transition:background .3s;}
+.qty-btn:hover { background:#ffa94f; }
+.qty-display { width:32px;text-align:center;font-size:1rem; }
+
+</style>
+<div id="cart">
+{% if rows %}
+    <div class="free-delivery-banner">
+      <i class="fa-solid fa-truck-fast"></i>
+      <div>
+        <h3>Free Delivery</h3>
+        <p>Enjoy free delivery on this order!</p>
+      </div>
+    </div>
+  <h1 style="text-align:center;color:#ffae36;margin:1.5rem 0">Your Cart</h1>
+
+  <table class="cart-table">
+    <tr><th>Roll</th><th>Qty</th><th>Price (₹)</th><th>Subtotal (₹)</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.name }} ({{ r.size }})</td>
+      <td>
+        <form method="POST" action="{{ url_for('update_cart', item_id=r.id) }}"
+                class="qty-bar">
+            {{ csrf_token() if csrf_token is defined }}
+            <button name="op" value="dec" class="qty-btn">−</button>
+            <span class="qty-display">{{ r.qty }}</span>
+            <button name="op" value="inc" class="qty-btn">+</button>
+        </form>
+        </td>
+
+      <td>{{ r.price }}</td>
+      <td>{{ r.subtotal }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <p style="width:90%;margin:0 auto;text-align:right;font-size:1.3rem;color:#ffae36">
+    Total: ₹{{ total }} (incl. GST)
+  </p>
+
+  <form id="checkoutForm" method="POST" action="{{ url_for('checkout') }}"
+        style="width:90%;margin:2rem auto;text-align:right">
+    <button class="btn-orange" onclick="showDrinkOffer(event)">Checkout</button>
+
+  </form>
+
+  {% if current_user.drinks_visited %}
+      <div style="display: flex; justify-content: center; margin: 2rem 0;">
+        <a href="{{ url_for('drinksMenu') }}" class="btn-orange"
+          style="background: #ffae36; color: black; font-weight: 600;">
+          🍹 Want to add drinks?
+        </a>
+      </div>
+    {% endif %}
+
+    <div id="drinkOfferModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+        background:rgba(0,0,0,0.8); z-index:10000; justify-content:center; align-items:center;">
+
+      <div style="background:#1a1a1a; padding:2rem; border-radius:12px; text-align:center; color:#ffae36; max-width:90%; width:400px;">
+        <h2 style="margin-bottom:1rem;">🥤 Get 30% OFF on Drinks!</h2>
+        <p style="margin-bottom:1.5rem;">Would you like to add some drinks to your order?</p>
+        <button onclick="redirectToDrinks()" class="btn-orange" style="margin-right:1rem;">Yes, show me!</button>
+        <button onclick="proceedToCheckout()" class="btn-orange">No, continue</button>
+      </div>
+    </div>
+{% else %}
+  <!-- Empty-cart state -->
+  <div class="empty-cart">
+    <i class="fa-solid fa-cart-shopping"></i>
+    <p>Your cart is empty</p>
+    <a href="{{ url_for('menu') }}" class="btn-orange">Browse Menu</a>
+  </div>
+{% endif %}
+
+
+<!-- Celebration screen -->
+  <div id="celebrationScreen" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; flex-direction:column; overflow:hidden;">
+
+    <h1 style="color:#ffae36; font-size:2rem; text-align:center; z-index:1;">🎉 Thank you! for ordering. 🎉<br>Your order will be delivered soon.</h1>
+    <div id="confettiRain" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></div>
+  </div>
+
+</div>
+<script id="location-data-json" type="application/json">
+  {{ location_data | tojson }}
+</script>
+
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+ <script>
+  const userVisitedDrinks = {{ current_user.drinks_visited | default(false) | tojson }};
+  
+
+  async function showDrinkOffer(event) {
+    event.preventDefault(); // prevent immediate form submission
+
+    const locationData = JSON.parse(document.getElementById("location-data-json").textContent);
+
+    if (!locationData.street_road || !locationData.area || !locationData.pincode) {
+      // Show popup and wait until location is submitted
+      await waitForLocationSubmit();
+    }
+
+    // Reload locationData after it's updated
+    const updatedData = JSON.parse(document.getElementById("location-data-json").textContent);
+    if (!updatedData.street_road || !updatedData.area || !updatedData.pincode) {;
+      return;
+    }
+
+    if (userVisitedDrinks) {
+      showCelebration().then(() => {
+        document.getElementById("checkoutForm").submit();
+      });
+    } else {
+      document.getElementById('drinkOfferModal').style.display = 'flex';
+    }
+  }
+
+
+
+  function waitForLocationSubmit() {
+  return new Promise((resolve) => {
+    openLocationPopup();
+
+    const check = setInterval(() => {
+      // Check if popup is closed AND location data has been refreshed
+      const popupHidden = document.getElementById('locationPopup').style.display === 'none';
+      const newData = JSON.parse(document.getElementById("location-data-json").textContent);
+      const filled = newData.street_road && newData.area && newData.pincode;
+
+      if (popupHidden && filled) {
+        clearInterval(check);
+        resolve();
+      }
+    }, 500);
+  });
+}
+
+
+  function redirectToDrinks() {
+    window.location.href = "{{ url_for('drinksMenu') }}";
+  }
+
+  function proceedToCheckout() {
+    document.getElementById('drinkOfferModal').style.display = 'none';
+    showCelebration().then(() => {
+      document.getElementById("checkoutForm").submit();
+    });
+  }
+
+  function showCelebration() {
+    return new Promise(resolve => {
+      const screen = document.getElementById('celebrationScreen');
+      const rain = document.getElementById('confettiRain');
+      screen.style.display = 'flex';
+
+      for (let i = 0; i < 60; i++) {
+        const emoji = document.createElement('div');
+        emoji.textContent = ['🎊', '🎉', '🪅'][Math.floor(Math.random() * 3)];
+        emoji.style.cssText = `
+          position: absolute;
+          top: -2rem;
+          left: ${Math.random() * 100}%;
+          font-size: ${Math.random() * 1 + 1.2}rem;
+          animation: fall ${2 + Math.random() * 3}s linear forwards;
+          pointer-events: none;
+        `;
+        rain.appendChild(emoji);
+      }
+
+      setTimeout(() => {
+        screen.style.display = 'none';
+        rain.innerHTML = '';
+        resolve();
+      }, 2500);
+    });
+  }
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fall {
+      0% { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+</script>
+
+
+
+
+{% endblock %}

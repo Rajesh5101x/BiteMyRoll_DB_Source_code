@@ -1,0 +1,172 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background: #000000;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        }
+        header {
+        background-color: black;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        }
+        section {
+        padding: 20px;
+        max-width: 900px;
+        margin: auto;
+        }
+        h1, h2 {
+        color: #FFAE36;
+        }
+        h3{
+            color: #ffaf36ef;
+        }
+        p{
+            color: rgb(235, 235, 235);
+        }
+        #order-div {
+            padding-left: 150px;
+            padding-top: 130px;
+        }
+        .order-div{
+            padding: 3px;
+        }
+        #order-btn{
+            padding: .45rem 1.4rem;
+            border-radius: 6px;
+            border: 1px solid #ff9d2d;
+            color:  white;
+            text-decoration: none;
+            display: inline-block;   /* or block */
+            width: 100%;
+            max-width: 320px;
+            height: 40px;
+            line-height: 40px;       /* vertically center text */
+            text-align: center; 
+            transition: color .25s ease;
+        }
+        #order-btn:hover{
+            color: #FFAE36;
+        }
+
+        #order{
+            background-image: url('static/images/background 2 conv 1.png');
+            height: 82vh;
+            width: 99vw;
+            background-size: cover;
+            background-position: right top;
+            background-repeat: no-repeat;
+        }
+
+        @media (max-width: 768px) {
+            #order{
+                height: 25vh;
+                background-position: right top;
+            }
+            #order-div{
+                padding-left: 6px;
+                padding-top: 25px;
+            }
+            
+            #order-btn{
+                padding: 0px;
+                width: 41%;
+                height: 28px;
+                display: flex;
+                flex-wrap: wrap;
+                align-content: center;
+                justify-content: center;
+                font-size: 11px;
+            }
+            h1{
+                font-size: 18px;
+            }
+
+            h2{
+                font-size: 15px;
+            }
+            P{
+                font-size: 12px;
+            }
+
+            #hh1{
+                font-size: 16px;
+                padding: 0px;
+            }
+            #hh2{
+                font-size: 11px;
+                padding: 0px;
+            }
+        }
+    </style>
+    <div id="order">
+        <div id="order-div">
+            <h1 class="order-div" id="hh1">BiteMyRoll's online ordering</h1>
+            <h3 class="order-div" id="hh2">Yummy roll delivered fast & fresh</h3>
+            <a href="{{ url_for('menu') }}" id="order-btn" class="order-div">ORDER ONLINE NOW</a>
+        </div>
+        
+    </div>
+
+    <header>
+        <h1>BiteMyRoll: Rolling Happiness to Your Doorstep</h1>
+    </header>
+
+    <section>
+        <h2>What's better than a crispy, juicy roll?</h2>
+            <p>
+                Enjoying a deliciously stuffed roll in the comfort of your home with the people you love.
+            </p>
+            <p>
+                With BiteMyRoll, it's always “Moments Wrapped Right”. Be it celebrating your promotion, a little one's victory, or treating your tired self after a long day — a tasty roll is all you need to make it special.
+                No need to step out, just a few clicks on our website or taps on your phone, and the goodness rolls in right to your doorstep.
+            </p>
+    </section>
+
+    <section>
+        <h2>Something for Everyone</h2>
+        <p>
+            Veggie lovers, meat fans, spice freaks, or those who crave a sweet ending — we've got it all.
+            From classic paneer tandoori rolls to spicy chicken tikka wraps, and even dessert rolls that melt in your mouth, BiteMyRoll has something for every craving.
+        </p>
+    </section>
+
+    <section>
+        <h2>Customize It Your Way</h2>
+        <p>
+            Choose your roll, your way — from fillings like smoky paneer, spicy corn, creamy mushroom, grilled chicken, sausages, or peri-peri veg to base options like whole wheat, cheese-loaded, or classic maida wraps.
+            Top it off with your choice of sauces, crunch, and even side dips.
+        </p>
+    </section>
+
+    <section>
+        <h2>Roll Combos Starting at Just ₹99</h2>
+        <p>
+            Why wait for a celebration? Enjoy our Bite Combos with two mouthwatering rolls starting at ₹99 (regular) and ₹199 (large). Taste, value, and fun — all rolled into one.
+        </p>
+    </section>
+
+    <section>
+        <h2>30-Minute Roll Delivery</h2>
+        <p>
+            Yes, you heard it right. BiteMyRoll promises to deliver hot and fresh rolls to your doorstep in just 30 minutes. Got doubts? Try us out and set your timer!
+            With over 500+ outlets and expanding fast, you can even munch on a roll while you're on the move — office, college, or even train!
+        </p>
+    </section>
+
+    <section>
+        <h2>Franchise Information</h2>
+        <p>
+            BiteMyRoll is growing rapidly and is open for franchise partnerships across India. Interested investors can email us at <strong>franchise@bitemyroll.in</strong>.
+        </p>
+        <p>
+            ⚠️ Beware of fake agents and fraudsters. All communications regarding franchise must happen only through our official email.
+            We are not liable for any losses due to fake deals or websites.
+        </p>
+    </section>
+{% endblock %}

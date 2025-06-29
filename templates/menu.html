@@ -1,0 +1,218 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    a{
+        text-decoration: none;
+    }
+    h1 {
+        color: #FFAE36;
+        padding-bottom: 5px;
+        font-size: 2.7rem;
+        text-align: center; 
+    }
+
+    .content-section{
+        min-height: 79.7vh;
+        padding-bottom: 20px;
+    }
+    .roll-card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .roll-card {
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        overflow: hidden;
+        width: 250px;
+        color: #f1f1f1;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        transition: transform 0.6s ease, box-shadow 0.6s ease
+    }
+
+    .roll-card:hover {
+        transform: translateY(-6px);
+        animation: twinkle-shadow 2s infinite alternate;
+    }
+
+    /* Twinkling shadow animation */
+    @keyframes twinkle-shadow {
+        0% {
+            box-shadow: 0 4px 15px 2px rgba(255, 157, 45, 0.2);
+        }
+        50% {
+            box-shadow: 0 6px 20px 4px rgba(255, 157, 45, 0.6);
+        }
+        100% {
+            box-shadow: 0 4px 12px 2px rgba(255, 157, 45, 0.3);
+        }
+    }
+
+    .roll-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+    }
+
+    .roll-card h3 {
+        color: #FFAE36;
+        margin: 0.75rem 0 0.5rem;
+    }
+
+    .roll-card p {
+        padding: 0 1rem 1rem;
+        font-size: 0.95rem;
+        color: #ccc;
+    }
+
+    @media (max-width: 768px) {
+        .roll-card-container {
+        flex-direction: row;
+        align-items: start;
+        }
+        .roll-card{
+            width: 42vw;
+        }
+
+        .roll-card img {
+        width: 100%;
+        height: auto;
+        }
+
+        h1{
+            font-size: 15px;
+        }
+        .roll-card h3{
+            font-size: 13px;
+            margin: 5px
+        }
+
+        .roll-card p{
+            font-size: 7px;
+            margin: 0px 0px;
+        }
+        .diet-badge{
+            font-size: 10px;
+        }
+    }
+    .diet-badge{
+        position: absolute;
+        padding: 10px;
+    }
+</style>
+
+<section class="content-section">
+  <h1>Explore Our Rolls</h1>
+  <div class="roll-card-container">
+    <!-- Card 1 -->
+    <a href=" {{ url_for('detail',type='Veg Delight Roll') }}">
+        <div class="roll-card">
+        <div class="diet-badge"><span style="color: green;">●</span> Veg</div>
+        <img src="/static/images/rolls/veg roll.png" alt="Veg Delight Roll">
+        <h3>Veg Delight Roll</h3>
+        <p>Stuffed with spiced potatoes, paneer, fresh veggies, and mint chutney wrapped in a soft roti.</p>
+        </div>
+    </a>
+
+    <!-- Card 2 -->
+    <a href=" {{ url_for('detail',type='Classic Chicken Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: red">●</span> Non-Veg</div>
+            <img src="/static/images/rolls/Classic Chicken Roll.png" alt="Classic Chicken Roll">
+            <h3>Classic Chicken Roll</h3>
+            <p>Juicy grilled chicken pieces tossed in spicy sauce and wrapped with onions and mayo.</p>
+        </div>
+    </a>
+
+    <!-- Card 3 -->
+    <a href=" {{ url_for('detail',type='Kolkata Kathi Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge">
+                <span style="color:#ffd54f;font-size:1rem;line-height:1;">▲</span>
+                Egg
+            </div>
+            <img src="/static/images/rolls/Kathi Roll.png" alt="Kolkata Kathi Roll">
+            <h3>Kolkata Kathi Roll</h3>
+            <p>Egg-layered paratha stuffed with flavorful kebabs, onions, and tangy sauces.</p>
+        </div>
+    </a>
+
+    <!-- Card 4 -->
+    <a href=" {{ url_for('detail',type='Tandoori Paneer Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: green;">●</span> Veg</div>
+            <img src="/static/images/rolls/Tandoori Paneer Roll.png" alt="Tandoori Paneer Roll">
+            <h3>Tandoori Paneer Roll</h3>
+            <p>Smoky tandoori paneer cubes with crunchy salad, rolled in a buttery wrap.</p>
+        </div>
+    </a>
+
+    <!-- Card 5 -->
+    <a href=" {{ url_for('detail',type='Choco-Nut Dessert Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: green;">●</span> Veg</div>
+            <img src="/static/images/rolls/Choco-Nut Dessert Roll.png" alt="Choco-Nut Dessert Roll">
+            <h3>Choco-Nut Dessert Roll</h3>
+            <p>Sweet chocolate and crushed nuts wrapped in a crispy shell — the perfect treat to end your meal!</p>
+        </div>
+    </a>
+
+    <!-- Card 6 -->
+    <a href=" {{ url_for('detail',type='Cheese Burst Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: green;">●</span> Veg</div>
+            <img src="/static/images/rolls/Cheese Burst Roll.png" alt="Cheese Burst Roll">
+            <h3>Cheese Burst Roll</h3>
+            <p>A gooey cheese explosion blended with veggies and herbs inside a grilled roll.</p>
+        </div>
+    </a>
+
+    <!-- Card 7 -->
+    <a href=" {{ url_for('detail',type='Spicy Peri Peri Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: red;">●</span> Non-Veg</div>
+            <img src="/static/images/rolls/Spicy Peri Peri Roll.png" alt="Spicy Peri Peri Roll">
+            <h3>Spicy Peri Peri Roll</h3>
+            <p>Red-hot peri peri marinated fillings with crunchy onions and tangy sauce.</p>
+        </div>
+    </a>
+
+    <!-- Card 8 -->
+    <a href=" {{ url_for('detail',type='Mexican Fiesta Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: green;">●</span> Veg</div>
+            <img src="/static/images/rolls/Mexican Fiesta Roll.png" alt="Mexican Fiesta Roll">
+            <h3>Mexican Fiesta Roll</h3>
+            <p>A fusion of beans, salsa, jalapeños and cheese — rolled for maximum flavor.</p>
+        </div>
+    </a>
+
+    <!-- Card 9 -->
+    <a href=" {{ url_for('detail',type='Middle Eastern Shawarma Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge"><span style="color: red;">●</span> Non-Veg</div>
+        <img src="/static/images/rolls/Middle Eastern Shawarma Roll.png" alt="Middle Eastern Shawarma Roll">
+        <h3>Middle Eastern Shawarma Roll</h3>
+        <p>Grilled chicken shawarma with garlic mayo and pickled veggies wrapped in soft pita bread.</p>
+        </div>
+    </a>
+
+    <!-- Card 10 -->
+    <a href=" {{ url_for('detail',type='Double Egg Roll') }}">
+        <div class="roll-card">
+            <div class="diet-badge">
+                <span style="color:#ffd54f;font-size:1rem;line-height:1;">▲</span>
+                Egg
+            </div>
+        <img src="/static/images/rolls/Double Egg Roll.png" alt="Double Egg Roll">
+        <h3>Double Egg Roll</h3>
+        <p>Flaky paratha with double fried egg, onion rings, and tangy spices — a street-style favorite.</p>
+        </div>
+    </a>
+</section>
+{% endblock %}
