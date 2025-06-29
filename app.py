@@ -2,6 +2,9 @@ from flask import Flask, request, url_for, render_template, redirect, flash, mak
 from data import ROLLS_DATA, BEVERAGE_DATA
 from forms import signupForm, loginForm, ChangePasswordForm
 
+from globals import database  # ✅ import from globals instead
+
+
 PRODUCTS_DATA = {**ROLLS_DATA, **BEVERAGE_DATA}
 
 from datetime import timedelta, datetime
@@ -15,7 +18,6 @@ from flask_login import (
     login_required, current_user
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from staff_routes import admin_bp          # ← import the blueprint
 
 
 
@@ -33,7 +35,7 @@ app.config.update(
     REMEMBER_COOKIE_DURATION=timedelta(days=30),
     PERMANENT_SESSION_LIFETIME=timedelta(minutes=1440),
 )
-app.register_blueprint(admin_bp, url_prefix="/admin")
+
 db = SQLAlchemy(app)
 
 
@@ -43,10 +45,9 @@ class User(db.Model, UserMixin):
     id       = db.Column(db.Integer, primary_key=True)
     email    = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(80),  nullable=False)
-    pw_hash  = db.Column(db.String(128), nullable=False)
+    pw_hash  = db.Column(db.String(512), nullable=False)
     gender   = db.Column(db.String(10))
     dob      = db.Column(db.Date)
-    age      = db.Column(db.Integer)
     is_admin = db.Column(db.Boolean, default=False)  
     #location
     street_road = db.Column(db.String(200))
@@ -109,7 +110,6 @@ def signup():
                 pw_hash  = generate_password_hash(form.password.data),
                 gender   = form.gender.data or None,
                 dob      = form.dob.data,
-                age      = form.age.data,
             )
             db.session.add(user)
             db.session.commit()
@@ -126,15 +126,16 @@ def login():
     form = loginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
+        print("Entered password:", form.password.data)
+        print("Stored hash:", user.pw_hash if user else "No user")
+
         if user and check_password_hash(user.pw_hash, form.password.data):
             login_user(user, remember=form.remember.data)
             flash("Login successful!", "success")
-
-            # ⬇️ role-based redirect
             if user.is_admin:
-                return redirect(url_for("admin.view_all_orders"))  # ✅ full name
-            else:
-                return redirect(url_for("menu"))
+                return redirect(url_for("admin_orders"))  # or whatever your admin home is
+            return redirect(url_for("menu"))
+
 
         flash("Invalid credentials", "error")
     return render_template("login.html", form=form)
@@ -166,7 +167,7 @@ def change_password():
             current_user.pw_hash = generate_password_hash(form.password.data)
             db.session.commit()
             flash("Password updated successfully!", "success")
-            return redirect(url_for("home"))
+            return redirect(request.referrer or url_for("menu"))
     return render_template("change_password.html", form=form, title="Change Password")
 
 # ─────────────────────────────────────────────────────────
@@ -191,17 +192,16 @@ class OrderItem(db.Model):
     notes    = db.Column(db.Text) 
 
 class Order(db.Model):
-    id        = db.Column(db.Integer, primary_key=True)
-    user_id   = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    placed_at = db.Column(db.DateTime, default=datetime.utcnow)
-    total     = db.Column(db.Float, nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)  
+    __tablename__ = "order"
 
-    items = db.relationship(         # ⬅️  NEW
-        "OrderItem",
-        backref="order",
-        cascade="all, delete-orphan"
-    )
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    placed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default="Pending") 
+    total = db.Column(db.Float, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+    items = db.relationship("OrderItem", backref="order", cascade="all, delete-orphan")
 
 
 from urllib.parse import urlparse
@@ -419,6 +419,103 @@ def set_location():
         "country": current_user.country,
         "pickup_point": current_user.pickup_point
     })
+
+
+@app.context_processor
+def inject_database():
+    if current_user.is_authenticated:
+        cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+        rows, total = [], 0
+        for ci in cart_items:
+            roll = PRODUCTS_DATA[ci.roll_id]
+            size = ci.size
+            price = next(p["price"] for p in roll["sizes"] if p["label"] == size)
+            sub = price * ci.qty
+            total += sub    
+            rows.append({
+                "name": roll["name"],
+                "size": size,
+                "qty": ci.qty,
+                "price": price,
+                "subtotal": sub
+            })
+        return dict(cart_data=rows, cart_total=total)
+    return dict(cart_data=[], cart_total=0)
+
+
+@app.route('/map')
+def map():
+    return render_template("map.html")
+
+
+
+@app.route("/admin/orders")
+@login_required
+def admin_orders():
+    if not current_user.is_admin:
+        abort(403)
+
+    orders = Order.query.order_by(Order.placed_at.asc()).all()
+    order_data = []
+
+    for order in orders:
+        user = User.query.get(order.user_id)
+        items = OrderItem.query.filter_by(order_id=order.id).all()
+
+        item_list = []
+        for item in items:
+            product = PRODUCTS_DATA.get(item.roll_id, {})
+            item_list.append({
+                "name": product.get("name", item.roll_id),
+                "size": item.size,
+                "qty": item.qty,
+                "price_each": item.price_each,
+                "notes": item.notes
+            })
+
+        order_data.append({
+            "order_id": order.id,
+            "placed_at": order.placed_at.strftime("%Y-%m-%d %H:%M"),
+            "status": order.status,
+            "total": order.total,
+            "user": {
+                "username": user.username,
+                "email": user.email,
+                "location": f"{user.street_road}, {user.area}, {user.pincode}, {user.state}, {user.country}",
+                "pickup": f"{user.pickup_point}"
+            },
+            "order_items": item_list   # ← renamed to avoid conflict
+        })
+
+
+    return render_template("admin/admin_orders.html", orders=order_data, title="All Orders")
+
+
+@app.route("/admin/update_status/<int:order_id>", methods=["POST"])
+@login_required
+def update_order_status(order_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    order = Order.query.get_or_404(order_id)
+    action = request.form.get("action")
+
+    if action == "cancel":
+        order.status = "Cancelled"
+    elif action == "update":
+        new_status = request.form.get("status")
+        if new_status not in ["Processing", "Out for Delivery", "Delivered"]:
+            return "Invalid status", 400
+        order.status = new_status
+    else:
+        return "Unknown action", 400
+
+    db.session.commit()
+    flash(f"Order #{order.id} status updated to {order.status}", "success")
+    return redirect(url_for("admin_orders"))
+
+
+
 
 
 if __name__ == '__main__':
