@@ -1,0 +1,2 @@
+email,username,pw_hash,gender,dob,age
+rr0656966@gmail.com,24CSEAIML015,scrypt:32768:8:1$RS7UdQF2ej67AV4l$da3234b81c1cac946ac44eec38b80576e9b1eea6961c95cc9c7ae7316054412ec5b0ac5b8ecb496c1f5ed5d9f79f2548004d2c9adf75673d230dc092e93062fa,Male,22-06-2025,5

@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  body {
+    background-color: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, p, li, th, td, label, select, option {
+    color: #fff;
+  }
+
+  h2 {
+    margin-bottom: 20px;
+    font-size: 28px;
+  }
+
+  .order-box {
+    background-color: #111;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    position: relative;
+  }
+
+  .order-box::after {
+    content: attr(data-status);
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    background: #888;
+    color: #1a1a1a;
+    padding: 0.3rem 0.6rem;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+  }
+
+  .order-box[data-status="Cancelled"]::after { background: #fb3f3f; }
+  .order-box[data-status="Delivered"]::after { background: #2bcf7e; }
+  .order-box[data-status="Out for Delivery"]::after { background: #fff485; color: #1a1a1a; }
+  .order-box[data-status="Processing"]::after { background: #f0bc2c; }
+  .order-box[data-status="Pending"]::after { background: #ff9d2d; }
+
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .order-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 6px 20px;
+    margin-bottom: 12px;
+  }
+
+  .order-items ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 5px;
+  }
+
+  .order-items li {
+    padding: 3px 0;
+    border-bottom: 1px dotted #ccc;
+  }
+
+  .status-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  select, button {
+    padding: 6px 12px;
+    background-color: #222;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+
+  button:hover {
+    background-color: #333;
+    cursor: pointer;
+  }
+
+  button[name="action"][value="cancel"] {
+    background-color: red;
+    border: none;
+    color: #fff;
+  }
+
+  button[name="action"][value="cancel"]:hover {
+    background-color: #c0392b;
+  }
+
+</style>
+
+<h2>📦 All Orders</h2>
+
+{% for order in orders %}
+  <div class="order-box" data-status="{{ order.status }}">
+    <div class="order-header">
+      <h3>Order #{{ order.order_id }}</h3>
+    </div>
+
+    <div class="order-meta">
+      <p><strong>User Name:</strong> {{ order.user.username }}</p>
+      <p><strong>Email:</strong> {{ order.user.email }}</p>
+      <p><strong>Status:</strong> {{ order.status }}</p>
+      <p><strong>Total:</strong> ₹{{ order.total }}</p>
+      <p><strong>Placed At:</strong> {{ order.placed_at }}</p>
+    </div>
+
+    <p><strong>Location:</strong> {{ order.user.location }}</p>
+    <p><strong>Pick up:</strong> {{ order.user.pickup }}</p>
+
+    <form class="status-form" action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST">
+      <label for="status">Update Status:</label>
+      <select name="status" id="status">
+        <option value="Processing" {% if order.status == "Processing" %}selected{% endif %}>Processing</option>
+        <option value="Out for Delivery" {% if order.status == "Out for Delivery" %}selected{% endif %}>Out for Delivery</option>
+        <option value="Delivered" {% if order.status == "Delivered" %}selected{% endif %}>Delivered</option>
+      </select>
+
+      <button type="submit" name="action" value="update" style="background-color: #2831d4;">Update</button>
+      <button type="submit" name="action" value="cancel" onclick="return confirm('Cancel this order?');">Cancel Order</button>
+    </form>
+
+    <div class="order-items">
+      <p><strong>Items:</strong></p>
+      <ul style="background-color: #1e2438;">
+        {% for item in order.order_items %}
+          <li>
+            {{ item.qty }}x {{ item.name }} ({{ item.size }})
+            {% if item.notes %}
+              <small style="color: #aaa;">   📝 Note: {{ item.notes }}</small>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endfor %}
+
+{% endblock %}

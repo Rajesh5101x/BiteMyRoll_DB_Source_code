@@ -1,0 +1,151 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  #map { height: 500px; width: 100%; margin: 20px 0; position: relative; }
+  #search-box { margin-bottom: 10px; }
+  .address-box { padding: 10px; background-color: #f9f9f9; margin: 10px 0; border: 1px solid #ccc; }
+
+  /* Static pin in the center */
+  .map-pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -100%);
+    background-image: url('https://cdn-icons-png.flaticon.com/512/684/684908.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 999;
+    pointer-events: none;
+  }
+  h2{
+    color:aliceblue;
+  }
+</style>
+
+<h2>Select Your Delivery Location</h2>
+
+<div id="search-box">
+  <input type="text" id="address-input" placeholder="Search for an address" size="50" />
+  <button onclick="searchAddress()">Search</button>
+</div>
+
+<div id="map">
+  <div class="map-pin"></div> <!-- The center pin -->
+</div>
+
+<div class="address-box">
+  <strong>Selected Address:</strong>
+  <pre id="address-info">No address selected yet.</pre>
+</div>
+
+<button onclick="submitSelectedLocation()">Save Location</button>
+
+<script type="application/json" id="location-data-json">
+  {{ {
+    "street_road": current_user.street_road or "",
+    "ward": current_user.ward or "",
+    "area": current_user.area or "",
+    "pincode": current_user.pincode or "",
+    "state": current_user.state or "",
+    "country": current_user.country or "",
+    "pickup_point": current_user.pickup_point or ""
+  } | tojson }}
+</script>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([20.5937, 78.9629], 5); // Default India center
+  const userLocation = JSON.parse(document.getElementById('location-data-json').textContent);
+  const apiKey = "a188a60bf0f1417baf6a706018e0b242";
+  let currentAddress = null;
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // If previous location exists, go there
+  if (userLocation.street_road || userLocation.area || userLocation.pincode) {
+    const query = [userLocation.street_road, userLocation.area, userLocation.pincode, userLocation.state, userLocation.country].filter(Boolean).join(", ");
+    fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.results.length > 0) {
+          const loc = data.results[0].geometry;
+          map.setView([loc.lat, loc.lng], 16);
+          reverseGeocode(loc.lat, loc.lng);
+        }
+      });
+  } else {
+    // Trigger geocode update when map stops moving
+    map.on('moveend', () => {
+      const center = map.getCenter();
+      reverseGeocode(center.lat, center.lng);
+    });
+  }
+
+  function searchAddress() {
+    const query = document.getElementById('address-input').value.trim();
+    if (!query) return;
+
+    fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${apiKey}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.results.length > 0) {
+          const { lat, lng } = data.results[0].geometry;
+          map.setView([lat, lng], 16);
+          reverseGeocode(lat, lng);
+        }
+      });
+  }
+
+  function reverseGeocode(lat, lng) {
+    fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${apiKey}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.results.length > 0) {
+          const c = data.results[0].components;
+          currentAddress = {
+            street_road: c.road || "",
+            ward: c.suburb || c.neighbourhood || "",
+            area: c.city || c.town || c.village || "",
+            pincode: c.postcode || "",
+            state: c.state || "",
+            country: c.country || "",
+            pickup_point: ""
+          };
+          document.getElementById("address-info").textContent = JSON.stringify(currentAddress, null, 2);
+        }
+      });
+  }
+
+  function submitSelectedLocation() {
+    if (!currentAddress) {
+      alert("Please move the map to set your location.");
+      return;
+    }
+
+    fetch("/set_location", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(currentAddress)
+    })
+    .then(res => res.json())
+    .then(data => {
+    alert("Location saved!");
+    if (document.referrer) {
+        window.location.href = document.referrer;
+    } else {
+        window.location.href = "/menu"; // fallback if no referrer
+    }
+    })
+
+    .catch(err => {
+      console.error("Error saving:", err);
+      alert("Failed to save location.");
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+python -m venv venv
+venv\Scripts\activate
+
+
+
+$env:FLASK_APP = "app.py"
+
+flask init-db
+
+$env:FLASK_ENV="development"
+
+flask run --debug
+
+pip install -r requirements.txt
+
+to delete:
+rm bitemyroll.db 
+flask init-db

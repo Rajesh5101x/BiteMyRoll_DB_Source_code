@@ -1,0 +1,211 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  #order {
+    min-height: 79.3vh;
+  }
+
+  /* shared button style */
+  .btn-orange {
+    display: inline-block;
+    padding: 0.75rem 1.4rem;
+    background: #ff9d2d;
+    color: #1a1a1a;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+  }
+
+  .btn-orange:hover {
+    background: #ffa94f;
+  }
+
+  /* order cards */
+  .order-card {
+    width: 90%;
+    margin: 1.5rem auto;
+    padding: 1.2rem 1.5rem;
+    background: rgba(26, 26, 26, 0.9);
+    border: 1px solid #333;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(255, 157, 45, 0.08);
+    position: relative;
+  }
+
+  .order-card h2 {
+    color: #ffae36;
+    margin-bottom: 0.6rem;
+    font-size: 1.1rem;
+  }
+
+  .order-card ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.4rem 0 1rem 0;
+    color: #eee;
+  }
+
+  .order-card li {
+    margin: 0.25rem 0;
+  }
+
+  .order-card p {
+    color: #ffae36;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* cancelled orders greyed out */
+  .order-card.cancelled {
+    background: #2b2b2b;
+    border: 1px solid #555;
+    color: #999;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .order-card.cancelled h2,
+  .order-card.cancelled p,
+  .order-card.cancelled ul,
+  .order-card.cancelled li,
+  .order-card.cancelled small {
+    color: #999 !important;
+  }
+
+  .order-card.cancelled::after {
+    content: "CANCELLED";
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    background: #fb3f3f;
+    color: #1a1a1a;
+    padding: 0.3rem 0.6rem;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 0.85rem;
+  }
+
+  /* empty-orders */
+  .empty-orders {
+    min-height: 82.5vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .empty-orders i {
+    font-size: 6rem;
+    color: #ff9d2d;
+  }
+
+  .empty-orders p {
+    font-size: 1.25rem;
+    color: #ccc;
+  }
+
+  .btn-cancel {
+    background: #ff6b6b;
+    color: #1a1a1a;
+    font-weight: 600;
+    border: none;
+    padding: 0.55rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .btn-cancel:hover {
+    background: #ff8787;
+  }
+
+  .order-card::after {
+  content: attr(data-status);
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #999;
+  color: #1a1a1a;
+  padding: 0.3rem 0.6rem;
+  font-weight: bold;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+/* Specific status colors */
+.order-card[data-status="cancelled"]::after {
+  background: #fb3f3f;
+}
+
+.order-card[data-status="delivered"]::after {
+  background: #2bcf7e;
+}
+
+.order-card[data-status="out for delivery"]::after {
+  background: #fff485;
+  color: #1a1a1a;
+}
+
+.order-card[data-status="processing"]::after {
+  background: #f0bc2c;
+}
+
+.order-card[data-status="pending"]::after {
+  background: #ff9d2d;
+}
+
+</style>
+
+<div id="order">
+  {% if orders %}
+    <h1 style="text-align:center;color:#ffae36;margin:1.5rem 0">Your Orders</h1>
+
+    {% for box in orders %}
+      {% set status = box.order_obj.status.lower() %}
+      <div class="order-card{% if status == 'cancelled' %} cancelled{% endif %}" data-status="{{ status }}">
+        <h2>
+          Order #{{ loop.index }} — {{ box.order_obj.placed_at.strftime("%d %b %Y %H:%M") }}
+          
+        </h2>
+
+        <ul>
+          {% for i in box.rows %}
+            <li>
+              {{ i.qty }} × {{ i.size }} {{ i.name }} (₹{{ i.price_each }}) — ₹{{ i.price_each * i.qty }}
+              {% if i.notes %}
+                <br><small style="color:#ffae36">Note: {{ i.notes }}</small>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+
+        <p>Total: ₹{{ box.order_obj.total }} (incl. GST)</p>
+
+        {% if status == "cancelled" %}
+          <p style="color:#fb3f3f;text-align:center;margin-top:1rem">
+            This order has been cancelled and will not be processed.
+          </p>
+        {% elif status not in ["delivered", "cancelled"] %}
+          <form method="POST"
+                action="{{ url_for('cancel_order', order_id=box.order_obj.id) }}"
+                onsubmit="return confirm('Are you sure you want to cancel this order?');">
+            {{ csrf_token() if csrf_token is defined }}
+            <button type="submit" class="btn-cancel">Cancel Order</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-orders">
+      <i class="fa-solid fa-receipt"></i>
+      <p>You haven’t placed any orders yet.</p>
+      <a href="{{ url_for('menu') }}" class="btn-orange">Shop&nbsp;Now</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
