@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    h2,td,th{
+        color: white;
+    }
+    .container{
+        min-width: 100vw;
+    }
+    .no-orders {
+      background: #1a1a1a;
+      border: 2px dashed #444;
+      padding: 30px;
+      text-align: center;
+      border-radius: 10px;
+      color: #bbb;
+      font-size: 1.2rem;
+      margin-top: 2rem;
+    }
+
+</style>
+<div class="container" style="padding: 2rem;">
+  <h2>User Contact Messages</h2>
+  {% if messages %}
+    <form method="POST" action="{{ url_for('delete_selected_messages') }}" onsubmit="return confirm('Delete selected messages?');" style="width: 97vw; margin: auto;">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+        <button type="submit" style="
+        background-color: #ff3333;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        ">
+        Delete Selected
+        </button>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead style="background-color: #ff6600; color: white;">
+        <tr>
+            <th style="padding: 12px;"><input type="checkbox" id="select-all" onclick="toggleCheckboxes(this)"></th>
+            <th style="padding: 12px;">ID</th>
+            <th style="padding: 12px;">Username</th>
+            <th style="padding: 12px;">Email</th>
+            <th style="padding: 12px;">Category</th>
+            <th style="padding: 12px;">Message</th>
+            <th style="padding: 12px;">Timestamp</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for msg in messages %}
+            <tr style="border-bottom: 1px solid #ccc;">
+            <td style="padding: 10px;"><input type="checkbox" name="message_ids" value="{{ msg.id }}"></td>
+            <td style="padding: 10px;">{{ msg.id }}</td>
+            <td style="padding: 10px;">{{ msg.username }}</td>
+            <td style="padding: 10px;">{{ msg.email }}</td>
+            <td style="padding: 10px;">{{ msg.category }}</td>
+            <td style="padding: 10px; white-space: pre-wrap;">{{ msg.message }}</td>
+            <td style="padding: 10px;">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </form>
+
+
+  {% else %}
+    <div class="no-orders">
+      <i class="fas fa-inbox" style="font-size: 2rem; color: #666;"></i>
+      <p>No messages found.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function toggleCheckboxes(source) {
+    const checkboxes = document.querySelectorAll('input[name="message_ids"]');
+    for (const cb of checkboxes) {
+      cb.checked = source.checked;
+    }
+  }
+</script>
+
+{% endblock %}

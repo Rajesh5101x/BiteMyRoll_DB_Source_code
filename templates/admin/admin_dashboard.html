@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - BiteMyRoll</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+
+    <h2>All Users</h2>
+    <ul>
+        {% for email, user_data in database.items() %}
+            <li><strong>{{ email }}</strong> | Location: {{ user_data.location or "N/A" }} | Visited Drinks: {{ "Yes" if user_data.visited_drinks else "No" }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Admin Dashboard: All Orders</h2>
+
+    {% if orders %}
+        {% for order in orders %}
+            <div style="border: 1px solid #ccc; padding: 1em; margin-bottom: 1.5em;">
+                <strong>Order ID:</strong> {{ order.order_id }} <br>
+                <strong>User:</strong> {{ order.username }} ({{ order.email }})<br>
+                <strong>Location:</strong> {{ order.location }} <br>
+                <strong>Placed At:</strong> {{ order.placed_at.strftime('%Y-%m-%d %H:%M') }} <br>
+                <strong>Status:</strong> {{ order.status }}<br>
+
+                <strong>Items:</strong>
+                <ul>
+                    {% for item in order.items %}
+                        <li>{{ item.roll_id }} ({{ item.size }}) × {{ item.qty }} @ ₹{{ item.price_each }}{% if item.notes %} – Notes: {{ item.notes }}{% endif %}</li>
+                    {% endfor %}
+                </ul>
+
+                <strong>Total Price:</strong> ₹{{ order.total }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No orders yet.</p>
+    {% endif %}
+
+
+    <h2>Carts</h2>
+    <ul>
+        {% for email, user_data in database.items() %}
+            {% if user_data.cart %}
+                <li>{{ email }} - {{ user_data.cart }}</li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    <h2>Unavailable Items</h2>
+    <ul>
+        {% for category in ['roll', 'drink'] %}
+            <li><strong>{{ category.capitalize() }}s:</strong>
+                {% set unavailable = database[category + '_unavailable'] if category + '_unavailable' in database else [] %}
+                {{ unavailable | join(', ') if unavailable else 'None' }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Toggle Availability</h2>
+    <form method="get" action="{{ url_for('admin.toggle_availability', category='roll', item='paneer_tikka') }}">
+        <button type="submit">Toggle Paneer Tikka Roll</button>
+    </form>
+    <form method="get" action="{{ url_for('admin.toggle_availability', category='drink', item='coke') }}">
+        <button type="submit">Toggle Coke Drink</button>
+    </form>
+
+</body>
+</html>

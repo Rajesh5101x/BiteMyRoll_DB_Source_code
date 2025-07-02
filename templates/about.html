@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #0e0e0e;
+        color: #eaeaea;
+        margin: 0;
+        padding: 0;
+    }
+
+    .about-container {
+        max-width: 1000px;
+        margin: 3rem auto;
+        padding: 2.5rem;
+        background-color: #1a1a1a;
+        border-radius: 16px;
+        box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);
+    }
+
+    .about-container h1, 
+    .about-container h2, 
+    .about-container h4 {
+        color: #FFAE36;
+        margin-bottom: 1rem;
+    }
+
+    .about-container p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.2rem;
+        color: #ccc;
+    }
+
+    .about-container ul {
+        padding-left: 1.5rem;
+        list-style-type: "✅ ";
+    }
+
+    .about-container li {
+        margin-bottom: 0.8rem;
+        color: #ddd;
+        font-size: 1.05rem;
+    }
+
+    header {
+        background-color: #111;
+        padding: 2rem;
+        text-align: center;
+        color: #FFAE36;
+        font-size: 2rem;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(255, 174, 54, 0.1);
+    }
+
+    .map-container {
+        margin-top: 2.5rem;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(255, 174, 54, 0.3);
+    }
+
+    .map-container iframe {
+        width: 100%;
+        height: 400px;
+        border: none;
+        transition: transform 0.3s ease;
+        filter: grayscale(20%) brightness(80%);
+    }
+
+    .map-container iframe:hover {
+        transform: scale(1.01);
+    }
+
+    .thank-you {
+        text-align: center;
+        margin-top: 2rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+        color: #FFAE36;
+    }
+
+    @media (max-width: 768px) {
+        .about-container {
+            padding: 1.5rem;
+        }
+        header {
+            font-size: 1.5rem;
+        }
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+  font-size: revert;
+  font-weight: revert;
+}
+</style>
+
+<header>
+    <h1>About BiteMyRoll</h1>
+</header>
+
+<div class="about-container">
+    <section>
+        <h2>Who We Are</h2>
+        <p>
+            BiteMyRoll is India’s fastest-growing gourmet roll brand, built on passion, flavor, and innovation. What started as a small kitchen dream is now a network of over 500 outlets across India, delivering happiness one roll at a time.
+        </p>
+        <p>
+            From street-style classics to international fusion rolls, we’re redefining how India eats on-the-go. We believe every bite should tell a story — and that story should be delicious.
+        </p>
+    </section>
+
+    <section>
+        <h2>Why Choose BiteMyRoll?</h2>
+        <ul>
+            <li>Fresh & naturally sourced ingredients</li>
+            <li>Hygienic, healthy preparation</li>
+            <li>Quick turnaround & hot delivery</li>
+            <li>Budget-friendly & online ordering</li>
+            <li>Unique recipes you won’t find anywhere else</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Our Mission</h2>
+        <p>
+            To roll happiness into every meal — combining flavor, speed, and satisfaction. We strive to create not just food, but memorable experiences through customization, consistency, and care.
+        </p>
+    </section>
+
+    <section>
+        <h2>Our Vision</h2>
+        <p>
+            We aim to be the #1 food-tech powered quick-service roll brand in India, driven by innovation, sustainability, and franchise-led expansion.
+        </p>
+    </section>
+
+    <section>
+        <h2>Where to Find Us</h2>
+        <p>Visit our flagship outlet and experience the magic of BiteMyRoll in person!</p>
+
+        <div class="map-container">
+          <div class="map-container">
+          <a href="https://www.google.com/maps/search/?api=1&query=21.081241399885652,86.51173585161484" target="_blank">
+              <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15094.75617475713!2d86.51173585161484!3d21.081241399885652!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDA0JzUyLjUiTiA4NsKwMzAnNDIuMiJF!5e0!3m2!1sen!2sin!4v1719738212345!5m2!1sen!2sin"
+                  allowfullscreen=""
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+          </a>
+      </div>
+
+
+    </section>
+
+    <div class="thank-you">
+        🙏 Thank you for showing interest in BiteMyRoll. Let’s roll happiness together!
+    </div>
+</div>
+{% endblock content %}

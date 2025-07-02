@@ -1,0 +1,196 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+  #contact {
+    min-height: 85vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background-color: #121212; /* Dark base */
+  }
+
+  .contact-card {
+    background-color: #1e1e1e; /* Slightly lighter dark card */
+    padding: 2.5rem 3rem;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+
+  .contact-card:hover {
+    transform: scale(1.01);
+  }
+
+  .contact-card h1,
+  .contact-card h2 {
+    color: #FFAE36;
+    margin-bottom: 1.5rem;
+  }
+
+  .contact-info {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #e0e0e0;
+    margin-bottom: 1rem;
+  }
+
+  .contact-info i {
+    color: #FFAE36;
+    margin-right: 10px;
+  }
+
+  .thank-you {
+    margin-top: 2rem;
+    font-size: 17px;
+    color: #bbbbbb;
+  }
+
+  @media (max-width: 600px) {
+    .contact-card {
+      padding: 1.5rem;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+  font-size: revert;
+  font-weight: revert;
+}
+
+ #contact {
+    background-color: #1a1a1a;
+    padding: 40px 20px;
+    min-height: 90vh;
+    color: white;
+  }
+
+  .contact-wrapper {
+    width: 700px;
+    margin: 0 auto;
+    background-color: #111;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 0 20px rgba(255, 174, 54, 0.2);
+  }
+
+  h1, h2, h3, h4 {
+    color: #FFAE36;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  label {
+    color: #FFAE36;
+    font-weight: bold;
+    display: block;
+    margin-top: 15px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: #222;
+    color: white;
+    border: 1px solid #FFAE36;
+    border-radius: 8px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .form-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #FFAE36;
+    color: black;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .form-button:hover {
+    background-color: #e89d30;
+  }
+
+  .flash-message {
+    background-color: #FFAE36;
+    color: black;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+</style>
+
+<div id="contact">
+  <div class="contact-card">
+    <h1>Contact Us 🍴</h1>
+    <h2>We’d love to hear from you!</h2>
+
+    <div class="contact-info">
+      <p><i class="fas fa-envelope"></i><strong>Email:</strong> bitemyroll@gmail.com</p>
+      <p><i class="fas fa-phone-alt"></i><strong>Phone:</strong> +91 79782 62400</p>
+      <p><i class="fas fa-map-marker-alt"></i><strong>Location:</strong> 3GJ6+FMX, Charampa, Odisha – 765101</p>
+    </div>
+
+    <div class="thank-you">
+      <p>We hope you had a delicious time!</p>
+      <p>For feedback, catering requests, or support, feel free to reach out anytime. 😊</p>
+      <p>Thank you for choosing <strong style="color: #FFAE36;">BiteMyRoll</strong></p>
+    </div>
+  </div>
+</div>
+
+
+<div id="contact">
+  <div class="contact-wrapper">
+    <h2>Contact BiteMyRoll 🍴</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-message">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      {{ form.hidden_tag() }}
+
+      <label for="username">Name</label>
+      {{ form.username }}
+
+      <label for="email">Email</label>
+      {{ form.email }}
+
+      <label for="category">Category</label>
+      {{ form.category }}
+
+      <label for="message">Message</label>
+      {{ form.message }}
+
+      <button type="submit" class="form-button">Send Message</button>
+    </form>
+  </div>
+</div>
+<!-- Font Awesome (for icons) -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+{% endblock %}
