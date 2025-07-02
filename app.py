@@ -1,6 +1,6 @@
 from flask import Flask, request, url_for, render_template, redirect, flash, make_response,session, abort, jsonify
 from data import ROLLS_DATA, BEVERAGE_DATA
-from forms import signupForm, loginForm, ChangePasswordForm
+from forms import signupForm, loginForm, ChangePasswordForm, ContactForm, ResetPasswordForm, ForgotPasswordForm, CreateUserForm
 
 from globals import database  # ✅ import from globals instead
 
@@ -48,7 +48,7 @@ class User(db.Model, UserMixin):
     pw_hash  = db.Column(db.String(512), nullable=False)
     gender   = db.Column(db.String(10))
     dob      = db.Column(db.Date)
-    is_admin = db.Column(db.Boolean, default=False)  
+    is_admin = db.Column(db.Integer, default=0) 
     #location
     street_road = db.Column(db.String(200))
     ward = db.Column(db.String(100))
@@ -59,6 +59,21 @@ class User(db.Model, UserMixin):
     pickup_point = db.Column(db.String(200))
     drinks_visited = db.Column(Boolean, default=False)
 
+    def set_password(self, password):
+        self.pw_hash = generate_password_hash(password)
+
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+    
+    def is_admin_user(self):
+        return self.is_admin == 1
+
+    def is_staff_user(self):
+        return self.is_admin == 2
+
+    def is_delivery_user(self):
+        return self.is_admin == 3
 
 
 
@@ -84,9 +99,6 @@ def home():
 def menu():
     return render_template('menu.html', title="Today's menu")
 
-@app.route('/contact')
-def contact():
-    return render_template('contact.html', title="Contact Us")
 
 @app.route('/about')
 def about():
@@ -200,6 +212,7 @@ class Order(db.Model):
     status = db.Column(db.String(20), default="Pending") 
     total = db.Column(db.Float, nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     items = db.relationship("OrderItem", backref="order", cascade="all, delete-orphan")
 
@@ -448,16 +461,21 @@ def map():
     return render_template("map.html")
 
 
-
 @app.route("/admin/orders")
 @login_required
 def admin_orders():
-    if not current_user.is_admin:
+    if current_user.is_admin not in [1, 2, 3]:
         abort(403)
 
-    orders = Order.query.order_by(Order.placed_at.asc()).all()
-    order_data = []
+    # Fetch all orders for admin
+    if current_user.is_admin == 1:
+        orders = Order.query.filter(Order.status.in_(["Pending", "Processing","Ready for Delivered", "Out for Delivery"])).order_by(Order.placed_at.asc()).all()
+    elif current_user.is_admin == 2:
+        orders = Order.query.filter(Order.status.in_(["Pending", "Processing"])).order_by(Order.placed_at.asc()).all()
+    elif current_user.is_admin == 3:
+        orders = Order.query.filter(Order.status.in_(["Ready for Delivered", "Out for Delivery"])).order_by(Order.placed_at.asc()).all()
 
+    order_data = []
     for order in orders:
         user = User.query.get(order.user_id)
         items = OrderItem.query.filter_by(order_id=order.id).all()
@@ -482,39 +500,258 @@ def admin_orders():
                 "username": user.username,
                 "email": user.email,
                 "location": f"{user.street_road}, {user.area}, {user.pincode}, {user.state}, {user.country}",
-                "pickup": f"{user.pickup_point}"
+                "pickup": user.pickup_point
             },
-            "order_items": item_list   # ← renamed to avoid conflict
+            "order_items": item_list
         })
 
-
     return render_template("admin/admin_orders.html", orders=order_data, title="All Orders")
+
+
+
+
+@app.route("/admin/orders/history")
+@login_required
+def admin_order_history():
+    if current_user.is_admin != 1:
+        abort(403)
+
+    delivered_cancelled_orders = Order.query.filter(
+        Order.status.in_(["Delivered", "Cancelled"])
+    ).order_by(Order.placed_at.desc()).all()
+
+    order_data = []
+
+    for order in delivered_cancelled_orders:
+        user = User.query.get(order.user_id)
+        items = OrderItem.query.filter_by(order_id=order.id).all()
+
+        item_list = []
+        for item in items:
+            product = PRODUCTS_DATA.get(item.roll_id, {})
+            item_list.append({
+                "name": product.get("name", item.roll_id),
+                "size": item.size,
+                "qty": item.qty,
+                "price_each": item.price_each,
+                "notes": item.notes
+            })
+
+        order_data.append({
+            "order_id": order.id,
+            "placed_at": order.placed_at.strftime("%Y-%m-%d %H:%M"),
+            "status": order.status,
+            "total": order.total,
+            "user": {
+                "username": user.username,
+                "email": user.email,
+                "location": f"{user.street_road}, {user.area}, {user.pincode}, {user.state}, {user.country}",
+                "pickup": user.pickup_point
+            },
+            "order_items": item_list
+        })
+
+    return render_template("admin/admin_orders.html", orders=order_data, title="Order History")
+
 
 
 @app.route("/admin/update_status/<int:order_id>", methods=["POST"])
 @login_required
 def update_order_status(order_id):
-    if not current_user.is_admin:
+    order = Order.query.get_or_404(order_id)
+
+    # Only admin or staff should be able to update
+    if not current_user.is_authenticated or current_user.is_admin not in [1, 2, 3]:
         abort(403)
 
-    order = Order.query.get_or_404(order_id)
+    # Admin and staff use action + status
     action = request.form.get("action")
+    new_status = request.form.get("status")
 
-    if action == "cancel":
-        order.status = "Cancelled"
-    elif action == "update":
-        new_status = request.form.get("status")
-        if new_status not in ["Processing", "Out for Delivery", "Delivered"]:
-            return "Invalid status", 400
-        order.status = new_status
+    if current_user.is_admin in [1, 2]:
+        if action == "update" and new_status:
+            order.status = new_status
+            db.session.commit()
+            flash("Order status updated.", "success")
+        elif action == "cancel":
+            order.status = "Cancelled"
+            db.session.commit()
+            flash("Order cancelled.", "info")
+        else:
+            flash("Unknown action.", "error")
+
+    elif current_user.is_admin == 3:
+        # Delivery boy just sends status via button
+        if new_status in ["Out for Delivery", "Delivered"]:
+            order.status = new_status
+            db.session.commit()
+            flash(f"Marked as {new_status}.", "success")
+        else:
+            flash("Invalid status for delivery.", "error")
+
+    return redirect(request.referrer or url_for("admin_orders"))
+
+
+
+# ─────────────────────────────────────────────────────────
+#  Feedback form
+# ─────────────────────────────────────────────────────────
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
+
+
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact_form():
+    form = ContactForm()
+    if request.method == 'GET' and current_user.is_authenticated:
+        form.email.data = current_user.email
+
+    if form.validate_on_submit():
+        new_msg = ContactMessage(
+            username=form.username.data,
+            email=form.email.data,
+            category=form.category.data,
+            message=form.message.data
+        )
+        db.session.add(new_msg)
+        db.session.commit()
+        flash('Thank you! Your message has been received.', 'success')
+        return redirect(url_for('contact_form'))
+
+    return render_template('contact.html', form=form)
+
+
+@app.route('/admin/messages')
+@login_required
+def admin_messages():
+    if current_user.is_admin != 1:
+        abort(403)  # Forbidden access for non-admins
+
+    messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
+    return render_template('admin/admin_messages.html', messages=messages)
+
+
+@app.route('/admin/messages/delete', methods=['POST'])
+@login_required
+def delete_selected_messages():
+    if current_user.is_admin != 1:
+        abort(403)
+
+    ids = request.form.getlist('message_ids')
+    if ids:
+        ContactMessage.query.filter(ContactMessage.id.in_(ids)).delete(synchronize_session=False)
+        db.session.commit()
+        flash(f"{len(ids)} message(s) deleted successfully.", 'success')
     else:
-        return "Unknown action", 400
+        flash("No messages selected.", 'warning')
+    return redirect(url_for('admin_messages'))
 
-    db.session.commit()
-    flash(f"Order #{order.id} status updated to {order.status}", "success")
-    return redirect(url_for("admin_orders"))
+@app.route('/admin/create-user', methods=['GET', 'POST'])
+@login_required
+def create_user():
+    if current_user.is_admin != 1:
+        abort(403)
+
+    form = CreateUserForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            is_admin=int(form.role.data)
+        )
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('User created successfully!', 'success')
+        return redirect(url_for('admin_orders'))
+
+    return render_template('admin/create_user.html', form=form)
 
 
+
+# ─────────────────────────────────────────────────────────
+#  Reset Password
+# ─────────────────────────────────────────────────────────
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
+
+app.config["SECRET_KEY"] = "5a11f4cdd0e846bfb486df9e4ec9ac88f49f21e6a370a1f3e316d40b245b2c7e"
+
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt='password-reset-salt')
+
+def verify_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt='password-reset-salt', max_age=expiration)
+    except Exception:
+        return None
+    return email
+
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()  # You’ll create this form with just an email field
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            token = generate_reset_token(user.email)
+            reset_link = url_for('reset_password', token=token, _external=True)
+
+            # Send this link via email
+            print(f"""
+                to=user.email,
+                subject="Reset Your BiteMyRoll Password",
+                body="Hi {user},\n\nClick below to reset your password:\n{reset_link}\n\nThis link will expire in 1 hour."""
+            )
+            send_reset_email(user=user,token=reset_link)
+        flash("If the email exists, a reset link has been sent.", "info")
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html', form=form)
+
+
+from flask_login import login_user
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    email = verify_reset_token(token)
+    if not email:
+        flash('Invalid or expired link.', 'danger')
+        return redirect(url_for('login'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.set_password(form.password.data)  # Ensure hashing
+            db.session.commit()
+            login_user(user)  # ✅ Automatically log the user in
+            flash('Your password has been reset. You are now logged in.', 'success')
+            return redirect(url_for('home'))  # Redirect to homepage
+    return render_template('reset_password.html', form=form)
+
+
+
+import requests
+
+def send_reset_email(user, token):
+    base_url = "https://script.google.com/macros/s/AKfycbzbaeGzWFuYCq4teEQxXpTvgstxNRPwFZV8LUrol-0BwKHNmVTIdZSHH1QIOmeHsyXR/exec"
+
+    payload = {
+        "forget": "1",
+        "user": user.email,
+        "token": token
+    }
+
+    response = requests.post(base_url, data=payload)
+    print("Email API response:", response.text)
 
 
 
