@@ -26,14 +26,15 @@ function showUser() {
 
 function openLocationPopup() {
     const locationData = JSON.parse(document.getElementById("location-data-json").textContent);
+    console.log("Loaded location data:", locationData);
 
-    document.getElementById('street').value     = locationData.street_road || '';
-    document.getElementById('ward').value       = locationData.ward || '';
-    document.getElementById('city').value       = locationData.area || '';
-    document.getElementById('pincode').value    = locationData.pincode || '';
-    document.getElementById('state').value      = locationData.state || '';
-    document.getElementById('country').value    = locationData.country || '';
-    document.getElementById('pickupPoint').value = locationData.pickup_point || '';
+    document.getElementById('street').value       = locationData.street_road || '';
+    document.getElementById('ward').value         = locationData.ward || '';
+    document.getElementById('city').value         = locationData.area || '';
+    document.getElementById('pincode').value      = locationData.pincode || '';
+    document.getElementById('state').value        = locationData.state || '';
+    document.getElementById('country').value      = locationData.country || '';
+    document.getElementById('pickupPoint').value  = locationData.pickup_point || '';
 
     document.getElementById('locationPopup').style.display = 'flex';
 }
