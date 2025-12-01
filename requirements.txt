@@ -1,3 +1,7 @@
+gunicorn
+gevent
+eventlet
+Flask-SocketIO
 Flask>=3.0
 Flask-Login>=0.6
 Flask-SQLAlchemy>=3.1
@@ -5,3 +9,8 @@ Flask-WTF>=1.2
 WTForms[email]
 email-validator>=2.1
 pymysql>=1.1     # needed only when you switch to MySQL
+pymysql
+cryptography
+authlib
+reportlab
+
