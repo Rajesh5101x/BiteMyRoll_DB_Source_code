@@ -13,4 +13,4 @@ pymysql
 cryptography
 authlib
 reportlab
-
+flask_migrate
