@@ -1,0 +1,694 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+  .roll-detail {
+    max-width: 1000px;
+    min-height: 73.9vh;
+    margin: auto;
+    padding: 2rem 1rem;
+    color: #f1f1f1;
+  }
+
+  .roll-detail h1 {
+    text-align: center;
+    color: #FFAE36;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .roll-body {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    background: #1a1a1a;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(255, 157, 45, 0.08);
+  }
+
+  .roll-left {
+    flex: 0 0 380px;
+    text-align: center;
+  }
+
+  .roll-left img {
+    max-width: 75%;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(255, 157, 45, 0.15);
+    margin-bottom: 1rem;
+    text-align: center;
+    
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .roll-left p {
+    color: #ccc;
+    font-size: 0.95rem;
+  }
+
+  .roll-right {
+    flex: 1 1 320px;
+  }
+
+  .roll-right label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+    font-weight: bold;
+    color: #FFAE36;
+  }
+
+  .roll-right input[type="radio"],
+  .roll-right input[type="number"] {
+    margin-right: 6px;
+  }
+
+  .roll-right textarea {
+    width: 100%;
+    padding: 8px;
+    background: #0d0d0d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #f1f1f1;
+    resize: vertical;
+    margin-top: 0.5rem;
+  }
+
+  .add-btn {
+    margin-top: 1.5rem;
+    background: #ff9d2d;
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    color: #1a1a1a;
+    font-weight: bold;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .add-btn:hover {
+    background: #ffa94f;
+  }
+
+  
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: #ff9d2d;
+        color: #1a1a1a;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    }
+    .back-btn:hover { background:#ffa94f; }
+
+    .back-left {
+        position: fixed;
+        left: 10px;       
+        z-index: 1000;      
+    }
+
+    .qty-bar  { display:flex; align-items:center; gap:0.6rem; margin:1.2rem 0; }
+    .qty-btn  { background:#ff9d2d; border:none; color:#1a1a1a;
+                width:38px; height:38px; font:700 1.4rem/1 'Poppins',sans-serif;
+                border-radius:6px; cursor:pointer; }
+    .qty-btn:hover { background:#ffa94f; }
+
+    .qty-display { width:50px; text-align:center; font-size:1.1rem; }
+
+    /* horizontal row */
+    .size-row   { display:flex; align-items:center; justify-content:space-evenly;
+                margin:1rem 0; }
+    .size-label { color:#FFAE36; font-weight:600; }
+
+    .qty-bar    { display:flex; align-items:center; gap:.5rem; }
+    .qty-btn    { background:#ff9d2d; border:none; color:#1a1a1a;
+                width:34px; height:34px; font:700 1.2rem/1 sans-serif;
+                border-radius:6px; cursor:pointer; }
+    .qty-btn:hover     { background:#ffa94f; }
+    .qty-display       { width:32px; text-align:center; font-size:1rem; }
+
+    .diet-badge{
+        position: absolute;
+        padding: 24px;
+        font-size: large;
+    }
+
+    #roll-img {
+        animation: twinkle-shadow 10s infinite alternate;
+    }
+
+    /* Twinkling shadow animation */
+    @keyframes twinkle-shadow {
+        0% {
+            box-shadow: 0 4px 15px 2px rgba(255, 157, 45, 0.2);
+        }
+        50% {
+            box-shadow: 0 6px 20px 4px rgba(255, 157, 45, 0.6);
+        }
+        100% {
+            box-shadow: 0 4px 12px 2px rgba(255, 157, 45, 0.3);
+        }
+    }
+
+    @media (min-width: 768px) {
+      .roll-body{
+        width: 66vw;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .roll-detail{
+        padding-top: 0px;
+      }
+      .roll-body {
+        flex-direction: column;
+      }
+      .roll-right {
+        width: 100%;
+      }
+      .diet-badge{
+        padding: 16px;
+        font-size: 12px;
+      }
+      .back-btn{
+        position: relative;
+        font-size: 14px;
+        padding: 5px 8px;
+      }
+      .back-left{
+        left: 0px;
+      }
+      .roll-left{
+        flex:281px;
+      }
+      .roll-detail h1{
+        font-size: 20px;
+        margin: 0px;
+      }
+      .size-row{
+        margin: 0px;
+      }
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-size: revert;
+      font-weight: revert;
+    }
+
+
+
+
+/* ✨ THEME-MATCHED POPUP SKIN (uses same dark bg & accent colors) */
+  .bmr-popup{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 2000;
+  }
+  .bmr-popup-card{
+    width: 420px; max-width: 92%;
+    background: #1a1a1a; color: #f1f1f1;
+    border: 1px solid #444;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(255, 157, 45, 0.08);
+    padding: 1rem 1rem 1.25rem;
+  }
+  .bmr-popup-title{
+    color: #FFAE36; margin: 0 0 .75rem 0; text-align: center;
+  }
+  .bmr-label{
+    color:#FFAE36; font-weight: 700; display:block; margin:.25rem 0 .4rem;
+  }
+  .bmr-input{
+    width: 100%;
+    padding: 10px;
+    background: #0d0d0d;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #f1f1f1;
+    margin-bottom: .8rem;
+  }
+  .bmr-actions{
+    display:flex; gap:.6rem; margin-top:.4rem;
+  }
+  .bmr-btn-secondary{
+    background:#333; color:#f1f1f1; border:none;
+    padding:.6rem 1.2rem; border-radius:6px; cursor:pointer; width:100%;
+  }
+  .bmr-btn-secondary:hover{ background:#3a3a3a; }
+
+  .size-row.unavailable {
+    opacity: 0.5;
+  }
+
+
+</style>
+<section class="roll-detail">
+    <a href="{{ url_for('drinksMenu') }}" class="back-btn back-left">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+
+
+  <div class="roll-body">
+    <!-- LEFT: Image + Description -->
+    <div class="roll-left">
+
+      <img src="{{ url_for('static', filename=roll.image) }}"
+           alt="{{ roll.name }}" id="roll-img" onclick="openImagePopup()">
+      <p id="desc" onclick="openTextPopup('desc', this.innerText)">{{ roll.description }}</p>
+    </div>
+
+    <!-- RIGHT: Options + Form -->
+    <div class="roll-right">
+        <h1 id="name" onclick="openTextPopup('name', this.innerText)">{{ roll.name }}</h1>
+      <form action="{{ url_for('add_to_cart', roll_key=roll_key) }}" method="post">
+        {{ csrf_token() if csrf_token is defined }}
+        <input type="hidden" name="slug" value="{{ roll.name }}">
+
+        <!--  SIZE + QTY rows  -->
+        <div class="sizes-wrap" id="sizesWrap">
+        {% for size in roll.sizes %}
+            <div class="size-row {% if not size.is_available %}unavailable{% endif %}"
+                 data-available="{{ 'true' if size.is_available else 'false' }}">
+              
+              <span class="size-label"
+                    onclick="openSizePopup('{{ size.label }}', '{{ size.price }}', '{{ loop.index0 }}')">
+                {{ size.label }} --- ₹{{ size.price }}
+              </span>
+
+              <!-- Qty controls (inside add-to-cart form) -->
+              <div class="qty-bar" data-size="{{ size.label }}">
+                <button type="button" class="qty-btn minus" data-size="{{ size.label }}">-</button>
+                <span class="qty-display" id="disp-{{ size.label }}">0</span>
+                <input type="hidden" name="qty_{{ size.label }}" id="input-{{ size.label }}" value="0"/>
+                <button type="button" class="qty-btn plus" data-size="{{ size.label }}">+</button>
+              </div>
+
+              <!-- ✅ Inline Delete button (admin only) -->
+              {% if current_user.is_admin %}
+                <!-- Use a button (not a nested form). JS will POST a tiny form using delete URL below. -->
+                <button type="button"
+                        class="delete-size-btn"
+                        data-delete-url="{{ url_for('delete_size', size_id=size.id) }}"
+                        title="Delete size"
+                        style="background:#c0392b; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; margin-left:0.5rem;">
+                  ×
+                </button>
+              {% endif %}
+            </div>
+        {% endfor %}
+        </div>
+
+        <!-- Add Size Button (admin only) -->
+        {% if current_user.is_admin %}
+          <button type="button"
+                  class="add-btn"
+                  style="margin-top: 10px;"
+                  onclick="openNewSizePopup()">
+            + Add New Size
+          </button>
+        {% endif %}
+        
+        <!-- Submit -->
+        <button class="add-btn" type="submit">Add to Cart</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- generic text popup (for name & description) -->
+<div class="bmr-popup" id="textPopup" style="display:none;">
+  <div class="bmr-popup-card">
+    <h3 class="bmr-popup-title" id="textPopupTitle">Edit</h3>
+    <textarea id="textPopupInput" class="bmr-input"></textarea>
+    <div class="bmr-actions">
+      <button class="add-btn" onclick="applyTextEdit()">Apply</button>
+      <button class="bmr-btn-secondary" onclick="closeTextPopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- size popup (label + price + availability) -->
+<div class="bmr-popup" id="sizePopup" style="display:none;">
+  <div class="bmr-popup-card">
+    <h3 class="bmr-popup-title">Edit Size</h3>
+
+    <label class="bmr-label">Label</label>
+    <input type="text" id="sizeLabelInput" class="bmr-input">
+
+    <label class="bmr-label">Price (₹)</label>
+    <input type="number" id="sizePriceInput" step="0.01" class="bmr-input">
+
+    <label class="bmr-label">
+      <input type="checkbox" id="sizeAvailableInput"> Available
+    </label>
+
+    <div class="bmr-actions">
+      <button class="add-btn" onclick="applySizeEdit()">Apply</button>
+      <button class="bmr-btn-secondary" onclick="closeSizePopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ New Size Popup -->
+<div class="bmr-popup" id="newSizePopup" style="display:none;">
+  <div class="bmr-popup-card">
+    <h3 class="bmr-popup-title">Add New Size</h3>
+
+    <label class="bmr-label">Label</label>
+    <input type="text" id="newSizeLabelInput" class="bmr-input">
+
+    <label class="bmr-label">Price (₹)</label>
+    <input type="number" id="newSizePriceInput" step="0.01" class="bmr-input">
+
+    <label class="bmr-label">
+      <input type="checkbox" id="newSizeAvailableInput" checked> Available
+    </label>
+
+    <div class="bmr-actions">
+      <button class="add-btn" onclick="applyNewSize()">Add</button>
+      <button class="bmr-btn-secondary" onclick="closeNewSizePopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- diet popup (select veg / non-veg / egg) -->
+<div class="bmr-popup" id="dietPopup" style="display:none;">
+  <div class="bmr-popup-card">
+    <h3 class="bmr-popup-title">Edit Diet</h3>
+    <select id="dietSelect" class="bmr-input">
+      <option value="veg">Veg</option>
+      <option value="non-veg">Non-Veg</option>
+      <option value="egg">Egg</option>
+    </select>
+    <div class="bmr-actions">
+      <button class="add-btn" onclick="applyDietEdit()">Apply</button>
+      <button class="bmr-btn-secondary" onclick="closeDietPopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Upload + Crop Popup -->
+<div class="bmr-popup" id="imagePopup" style="display:none;">
+  <div class="bmr-popup-card" style="max-width:600px;">
+    <h3 class="bmr-popup-title">Update Image</h3>
+
+    <input type="file" id="newImageFile" class="bmr-input" accept="image/*" onchange="initCropper(event)">
+    
+    <div style="max-height:400px; margin-top:10px;">
+      <img id="cropImagePreview" style="max-width:100%; display:none;">
+    </div>
+
+    <div class="bmr-actions">
+      <button class="add-btn" onclick="applyCroppedImage()">Crop & Save</button>
+      <button class="bmr-btn-secondary" onclick="closeImagePopup()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const size   = btn.dataset.size;                         // e.g. "regular"
+      const input  = document.getElementById('input-' + size);
+      const disp   = document.getElementById('disp-' + size);
+      let qty      = parseInt(input.value, 10);
+
+      if (btn.classList.contains('plus') && qty < 10)   qty++;
+      if (btn.classList.contains('minus'))  qty = Math.max(0, qty - 1);
+
+      input.value = qty;
+      disp.textContent = qty;
+    });
+  });
+});
+</script>
+
+<script>
+  // ---------- state ----------
+  let editingField = null;
+  let editingSizeIndex = null;
+  let cropper = null;
+
+  // ---------- OPEN popups ----------
+  function openTextPopup(field, value){
+    editingField = field;
+    document.getElementById('textPopupTitle').innerText = field === 'name' ? 'Edit Name' : 'Edit Description';
+    document.getElementById('textPopupInput').value = value || '';
+    document.getElementById('textPopup').style.display = 'flex';
+  }
+  function openSizePopup(label, price, idx){
+    editingSizeIndex = parseInt(idx, 10);
+    document.getElementById('sizeLabelInput').value = label || '';
+    document.getElementById('sizePriceInput').value = price || '';
+    const row = document.querySelectorAll('.size-row')[editingSizeIndex];
+    const isAvail = (row.getAttribute('data-available') === 'true');
+    document.getElementById('sizeAvailableInput').checked = isAvail;
+    document.getElementById('sizePopup').style.display = 'flex';
+  }
+  function openNewSizePopup(){
+    document.getElementById('newSizeLabelInput').value = '';
+    document.getElementById('newSizePriceInput').value = '';
+    document.getElementById('newSizeAvailableInput').checked = true;
+    document.getElementById('newSizePopup').style.display = 'flex';
+  }
+  function openImagePopup(){
+    const popup = document.getElementById('imagePopup');
+    const img = document.getElementById('cropImagePreview');
+    const rollImg = document.getElementById('roll-img').src;
+    img.src = rollImg;
+    img.style.display = "block";
+    if (cropper) cropper.destroy();
+    img.onload = function() {
+      cropper = new Cropper(img, {
+        aspectRatio: NaN, viewMode: 1, autoCropArea: 1,
+        background: false, movable: true, zoomable: true,
+        scalable: true, rotatable: false
+      });
+    };
+    popup.style.display = "flex";
+  }
+
+  // ---------- CLOSE popups ----------
+  function closeTextPopup(){ document.getElementById('textPopup').style.display = 'none'; }
+  function closeSizePopup(){ document.getElementById('sizePopup').style.display = 'none'; editingSizeIndex = null; }
+  function closeNewSizePopup(){ document.getElementById('newSizePopup').style.display = 'none'; }
+  function closeImagePopup(){ document.getElementById('imagePopup').style.display = 'none'; }
+
+  // ---------- APPLY (DOM + save) ----------
+  function applyTextEdit(){
+    const val = document.getElementById('textPopupInput').value.trim();
+    if (editingField === 'name' && val) document.getElementById('name').innerText = val;
+    if (editingField === 'desc' && val) document.getElementById('desc').innerText = val;
+    closeTextPopup();
+    saveChanges();
+  }
+  function applySizeEdit(){
+    if (editingSizeIndex === null) { closeSizePopup(); return; }
+    const label = document.getElementById('sizeLabelInput').value.trim();
+    const price = parseFloat((document.getElementById('sizePriceInput').value || '').trim());
+    const available = document.getElementById('sizeAvailableInput').checked;
+
+    const row = document.querySelectorAll('.size-row')[editingSizeIndex];
+    row.querySelector('.size-label').innerText = `${label} --- ₹${isNaN(price) ? 0 : price}`;
+    row.setAttribute('data-available', available ? 'true' : 'false');
+    row.classList.toggle('unavailable', !available);
+
+    closeSizePopup();
+    saveChanges();
+  }
+  function applyNewSize(){
+    const label = document.getElementById('newSizeLabelInput').value.trim();
+    const priceRaw = (document.getElementById('newSizePriceInput').value || '').trim();
+    const available = document.getElementById('newSizeAvailableInput').checked;
+
+    if (!label || priceRaw === '') { alert("Please enter label and price."); return; }
+    const price = parseFloat(priceRaw);
+
+    const sizesWrap = document.getElementById('sizesWrap');
+    const row = document.createElement('div');
+    row.className = 'size-row';
+    row.setAttribute('data-available', available ? 'true' : 'false');
+    if (!available) row.classList.add('unavailable');
+
+    const idx = document.querySelectorAll('#sizesWrap .size-row').length;
+
+    row.innerHTML = `
+      <span class="size-label" onclick="openSizePopup('${label.replace(/'/g,"\\'")}', '${price}', '${idx}')">
+        ${label} --- ₹${price}
+      </span>
+      <div class="qty-bar" data-size="${label}">
+        <button type="button" class="qty-btn minus" data-size="${label}">-</button>
+        <span class="qty-display" id="disp-${label}">0</span>
+        <input type="hidden" name="qty_${label}" id="input-${label}" value="0"/>
+        <button type="button" class="qty-btn plus" data-size="${label}">+</button>
+      </div>
+      {% if current_user.is_admin %}
+      <button type="button"
+              class="delete-size-btn"
+              data-delete-url="#"
+              title="Delete size"
+              style="background:#c0392b; color:white; border:none; padding:3px 6px; border-radius:4px; cursor:pointer; margin-left:0.5rem;">
+        ×
+      </button>
+      {% endif %}
+    `;
+    sizesWrap.appendChild(row);
+
+    closeNewSizePopup();
+    saveChanges();
+  }
+
+  // ---------- Image crop ----------
+  function initCropper(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById("cropImagePreview");
+      img.src = e.target.result;
+      img.style.display = "block";
+      if (cropper) { cropper.destroy(); }
+      img.onload = function() {
+        cropper = new Cropper(img, {
+          aspectRatio: NaN, viewMode: 1, autoCropArea: 1,
+          background: false, movable: true, zoomable: true,
+          scalable: true, rotatable: false
+        });
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+  function applyCroppedImage() {
+    if (!cropper) { alert("Please select an image first."); return; }
+    cropper.getCroppedCanvas().toBlob(function(blob) {
+      const formData = new FormData();
+      // gather sizes
+      const sizes = [];
+      document.querySelectorAll(".size-row").forEach(row => {
+        const text = row.querySelector(".size-label").innerText.trim();
+        const parts = text.split("--- ₹");
+        if (parts.length === 2) {
+          sizes.push({
+            label: parts[0].trim(),
+            price: parseFloat(parts[1]) || 0,
+            available: row.getAttribute("data-available") === "true"
+          });
+        }
+      });
+      formData.append("name", document.getElementById("name").innerText.trim());
+      formData.append("desc", document.getElementById("desc").innerText.trim());
+      formData.append("sizes", JSON.stringify(sizes));
+      let filename = document.getElementById("name").innerText.trim().replace(/\s+/g, "_") + ".jpg";
+      formData.append("image", blob, filename);
+
+      const csrfInput = document.querySelector('input[name="csrf_token"]');
+      if (csrfInput) formData.append('csrf_token', csrfInput.value);
+
+      fetch("{{ url_for('admin_update_product', roll_key=roll_key, type = 'drink') }}", {
+        method: "POST",
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          alert("✅ Product updated successfully!");
+          closeImagePopup();
+          if (data.redirect_url) { window.location.href = data.redirect_url; }
+          else { location.reload(); }
+        } else { alert("❌ Failed to update image."); }
+      })
+      .catch(() => alert("❌ Network error."));
+    }, "image/jpeg");
+  }
+
+  // ---------- Save to server ----------
+  function saveChanges(){
+    const sizes = [];
+    document.querySelectorAll('.size-row').forEach(row => {
+      const text = row.querySelector('.size-label').innerText.trim();
+      const parts = text.split('--- ₹');
+      if (parts.length === 2){
+        sizes.push({
+          label: parts[0].trim(),
+          price: parseFloat(parts[1].replace(/,/g,'').trim()) || 0,
+          available: row.getAttribute('data-available') === 'true'
+        });
+      }
+    });
+
+    const formData = new FormData();
+    formData.append('name', document.getElementById('name').innerText.trim());
+    formData.append('desc', document.getElementById('desc').innerText.trim());
+    formData.append('sizes', JSON.stringify(sizes));
+
+    const newImg = document.getElementById('newImageFile') && document.getElementById('newImageFile').files[0];
+    if (newImg){ formData.append('image', newImg); }
+
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    if (csrfInput) formData.append('csrf_token', csrfInput.value);
+
+    fetch("{{ url_for('admin_update_product', roll_key=roll_key, type = 'drink') }}", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success"){
+        if (data.new_image_url){
+          document.getElementById("roll-img").src = data.new_image_url + "?v=" + Date.now();
+        }
+        if (data.redirect_url) window.location.href = data.redirect_url;
+        else location.reload();
+      } else {
+        alert("❌ Update failed. Try again.");
+        location.reload();
+      }
+    })
+    .catch(err => {
+      console.error("Update error:", err);
+      alert("❌ Network error.");
+    });
+  }
+
+  // ---------- Delete-size handler ----------
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.delete-size-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        if (!confirm('Delete this size?')) return;
+        const url = this.dataset.deleteUrl;
+        const csrfInput = document.querySelector('input[name="csrf_token"]');
+        const token = csrfInput ? csrfInput.value : null;
+
+        const f = document.createElement('form');
+        f.method = 'POST';
+        f.action = url;
+        f.style.display = 'none';
+        if (token) {
+          const h = document.createElement('input');
+          h.type = 'hidden';
+          h.name = 'csrf_token';
+          h.value = token;
+          f.appendChild(h);
+        }
+        document.body.appendChild(f);
+        f.submit();
+      });
+    });
+  });
+</script>
+
+
+{% endblock %}

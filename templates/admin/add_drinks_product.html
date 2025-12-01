@@ -1,0 +1,329 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .roll-detail {
+    max-width: 1000px;
+    min-height: 73.9vh;
+    margin: auto;
+    padding: 2rem 1rem;
+    color: #f1f1f1;
+  }
+  .roll-detail h1 {
+    text-align: center;
+    color: #FFAE36;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  .roll-body {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    background: #1a1a1a;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(255, 157, 45, 0.08);
+  }
+  .roll-left { flex: 1 1 380px; text-align: center; }
+  .roll-left img { max-width: 100%; border-radius: 8px; margin-bottom: 1rem; cursor: pointer; }
+  .roll-right { flex: 1 1 320px; }
+  .roll-right label { display: block; margin-top: 1rem; margin-bottom: 0.4rem; font-weight: bold; color: #FFAE36; }
+  .input-box, .textarea-box {
+    width: 100%; padding: 10px; margin-top: 0.4rem;
+    border: 1px solid #444; border-radius: 6px;
+    background: #0d0d0d; color: #f1f1f1;
+  }
+  .size-row { display:flex; align-items:center; gap:1rem; margin:0.8rem 0; }
+  .size-row input { flex:1; padding: 6px; border:1px solid #444; border-radius: 6px; background:#0d0d0d; color:#fff; }
+  .add-btn {
+    margin-top: 1rem;
+    background: #ff9d2d; border: none; padding: 0.6rem 1.4rem;
+    border-radius: 6px; color: #1a1a1a; font-weight: bold;
+    width: 100%; cursor: pointer;
+  }
+  .add-btn:hover { background:#ffa94f; }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #ff9d2d;
+    color: #1a1a1a;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  }
+  .back-btn:hover { background:#ffa94f; }
+  .items-center{
+    height:40vh;
+    width : 24vw;
+  }
+
+  /* Mobile first adjustments */
+@media (max-width: 767px) {
+  .roll-body {
+    flex-direction: column;   /* stack vertically */
+    gap: 1.2rem;
+    padding: 1rem;
+  }
+  .roll-left, .roll-right {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+  .roll-left img, 
+  #upload-box, 
+  #preview-img {
+    width: 82vw !important;
+    /* height: 41vh !important; */
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .input-box, .textarea-box {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+  .add-btn {
+    font-size: 1rem;
+    padding: 0.8rem;
+  }
+  .size-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .size-row input {
+    width: 100%;
+  }
+  .items-center{
+    width : 82vw !important;
+    height: 41vh !important;
+    max-width: 320px;
+  }
+}
+
+/* Wrapper for cropping area */
+.crop-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Image itself */
+#preview-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 8px;
+}
+
+
+</style>
+
+<section class="roll-detail">
+  <a href="{{ url_for('drinksMenu') }}" class="back-btn back-left">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+
+  <form id="productForm"
+      action="{{ url_for('admin_add_drink') }}"
+      method="post"
+      enctype="multipart/form-data">
+
+  <div class="roll-body">
+    <!-- LEFT: Image Upload + Preview -->
+    <div class="roll-left">
+      <div id="upload-wrapper" class="flex flex-col items-center space-y-3">
+        <!-- Hidden file input -->
+        <input type="file" name="image" id="image-upload" accept="image/*" class="hidden">
+
+        <!-- Styled upload area -->
+        <label for="image-upload"
+                id="upload-box"
+                class="flex flex-col items-center justify-center w-48 h-48 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition">
+            <svg class="w-10 h-10 text-gray-500 mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12"/>
+            </svg>
+            <span class="text-sm text-gray-600">Click to upload</span>
+            <span class="text-xs text-gray-400">(PNG, JPG, WEBP)</span>
+        </label>
+
+        <!-- Preview -->
+        <div class="crop-container" id="preview-container">
+            <img id="preview-img"
+                class="hidden"
+                alt="Preview">
+        </div>
+
+    </div>
+
+
+
+      <!-- now INSIDE the form -->
+      <input type="file" id="image-upload" name="image" style="display:none;" accept="image/*">
+      <button type="button" class="add-btn" id="cropBtn">Save Crop</button>
+    </div>
+
+    <!-- RIGHT: Fields -->
+    <div class="roll-right">
+      {{ csrf_token() if csrf_token is defined }}
+
+      <label for="name">Product Name:</label>
+      <input type="text" id="name" name="name" class="input-box" required placeholder="Product Name">
+
+      <label for="desc">Description:</label>
+      <textarea id="desc" name="desc" class="textarea-box" rows="3" placeholder="Description"></textarea>
+
+      <div class="form-group mb-4" style="height: 10px;"> 
+        <label class="inline-flex items-center">
+          <input type="checkbox" name="all_available" value="1" class="form-checkbox">
+          <span class="ml-2">Set all sizes as Available</span>
+        </label>
+      </div>
+
+
+      <!-- Sizes -->
+      <label>Sizes:</label>
+      <div id="sizes-wrap">
+        <div class="size-row">
+          <input type="text" name="size_label[]" placeholder="Size label (e.g. Regular)" required>
+          <input type="number" step="0.01" name="size_price[]" placeholder="Price ₹" required>
+        </div>
+
+      </div>
+      <button type="button" class="add-btn" onclick="addSize()">+ Add Another Size</button>
+
+      <!-- Submit -->
+      <button class="add-btn" type="submit">Save Product</button>
+    </div>
+  </div>
+</form>
+
+</section>
+
+<!-- Cropper.js -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+let cropper;
+
+const fileInput  = document.getElementById("image-upload");
+const preview    = document.getElementById("preview-img");
+const form       = document.getElementById("productForm");
+const uploadBox  = document.getElementById("preview-container");
+
+fileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    preview.src = ev.target.result;
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(preview, { aspectRatio: NaN, viewMode: 1, autoCropArea: 1 });
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("cropBtn").addEventListener("click", () => {
+  finalizeCropIntoInput();
+});
+
+form.addEventListener("submit", (e) => {
+  // If a cropper exists, finalize the crop so the file is guaranteed
+  if (cropper) {
+    e.preventDefault();
+    finalizeCropIntoInput().then(() => form.submit());
+  }
+});
+
+function finalizeCropIntoInput() {
+  return new Promise((resolve) => {
+    const canvas = cropper.getCroppedCanvas({ width: 600, height: 600 });
+    canvas.toBlob((blob) => {
+      const pname = (document.getElementById("name").value || "image").trim().replace(/\s+/g,'_');
+      const file = new File([blob], pname + ".png", { type: "image/png" });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+
+      preview.src = URL.createObjectURL(file);
+      cropper.destroy();
+      cropper = null;
+      resolve();
+    }, "image/png");
+  });
+}
+
+function addSize() {
+  const wrap = document.getElementById('sizes-wrap');
+  const div = document.createElement('div');
+  div.className = 'size-row';
+  div.innerHTML = `
+    <input type="text" name="size_label[]" placeholder="Size label (e.g. Large)" required>
+    <input type="number" step="0.01" name="size_price[]" placeholder="Price ₹" required>
+  `;
+  wrap.appendChild(div);
+}
+
+fileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    // Show preview
+    preview.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
+
+    // ✅ Hide upload box (label) instead of preview-container
+    document.getElementById("upload-box").classList.add("hidden");
+
+    // ✅ Show preview container
+    document.getElementById("preview-container").classList.remove("hidden");
+
+  } else {
+    preview.classList.add("hidden");
+    preview.src = "";
+
+    // ✅ Reset back
+    document.getElementById("upload-box").classList.remove("hidden");
+    document.getElementById("preview-container").classList.add("hidden");
+  }
+});
+
+
+
+
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Hide upload box
+    document.getElementById("upload-box").classList.add("hidden");
+    // Show preview
+    const previewContainer = document.getElementById("preview-container");
+    const previewImg = document.getElementById("preview-img");
+    previewContainer.classList.remove("hidden");
+    previewImg.src = e.target.result;
+    previewImg.classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  document.getElementById("image-upload").value = "";
+  document.getElementById("upload-box").classList.remove("hidden");
+  document.getElementById("preview-container").classList.add("hidden");
+}
+
+</script>
+
+
+
+{% endblock %}

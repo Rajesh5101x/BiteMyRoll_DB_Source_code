@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mx-auto p-6 lg:p-10">
+    <h1 class="text-3xl lg:text-4xl font-extrabold text-white mb-8 border-b-4 border-yellow-500 pb-3 uppercase tracking-wider">Pending Orders</h1>
+
+    <div id="orders-list-container"> 
+        {% if orders %}
+        <div class="grid gap-6" id="orders-grid"> 
+            {% for order in orders %}
+                <div class="bg-gray-900 rounded-lg shadow-xl p-6 flex flex-col border border-gray-800 transition duration-300 ease-in-out hover:shadow-orange-500/30 hover:border-orange-500 order-card new-arrival" id="order-card-{{ order.id }}">
+                    
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 w-full">
+                        
+                        <div class="mb-4 sm:mb-0">
+                            
+                            {# Payment Status Badge Logic: Jinja's equivalent of the ternary operator #}
+                            {% set payment_badge_class = "text-green-100 bg-green-600" if order.payment_status == 'paid' else "text-red-100 bg-red-600" %}
+                            {% set payment_badge_text = "PAID ONLINE" if order.payment_status == 'paid' else "COD - PENDING" %}
+
+                            <div class="flex items-center space-x-3 mb-2">
+                                <p class="text-xl font-bold text-yellow-400">Order ID: <span class="text-white">#{{ order.id }}</span></p>
+                                <span id="payment-status-{{ order.id }}"  class="px-3 py-1 text-xs font-bold leading-none {{ payment_badge_class }} rounded-full" >{{ payment_badge_text }}</span> 
+                            </div>
+                            
+                            <p class="text-sm text-gray-400 font-medium">Placed At: {{ order.placed_at }}</p>
+                            
+                            {# Total Amount: FIXED using Jinja's | format filter for two decimal places #}
+                            <p class="text-lg text-white mt-2 font-semibold">Total Amount: <span class="font-extrabold text-orange-400">₹{{ '%.2f' | format(order.total) }}</span></p>
+                        </div>
+                        
+                        {# Pick Form: Uses Jinja's url_for instead of a JavaScript variable #}
+                        <form method="POST" action="{{ url_for('maker_pick', order_id=order.id) }}" class="maker-pick-form">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-md shadow-lg transition duration-150 transform hover:scale-[1.03]">
+                                Start Making
+                            </button>
+                        </form>
+                    </div>
+                    
+                    {# Item Details Section #}
+                    <div class="mt-4 pt-4 border-t border-gray-700 w-full">
+                        <h3 class="text-md font-bold text-white mb-2">Order Details:</h3>
+                        <ul class="space-y-1">
+                            
+                            {# Item List Loop: Jinja's equivalent of JavaScript's .map() #}
+                            {% for item in order.items %}
+                            <li class="flex justify-between text-sm text-gray-400">
+                                
+                                {# Item Name and Size #}
+                                <span class="font-medium text-white">{{ item.roll_id }} ({{ item.size }})</span>
+                                
+                                {# Quantity and Price: FIXED using Jinja's | format filter #}
+                                <span>{{ item.qty }} x ₹{{ '%.2f' | format(item.price_each) }}</span>
+                                
+                                {# Conditional Note Display: FIXED using Jinja's {% if %} #}
+                                {% if item.notes %}
+                                    <p class="text-xs italic text-gray-500">Note: {{ item.notes }}</p>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+        </div>
+        {% else %}
+            <div id="orders-grid"> 
+                <p class="text-gray-400 text-lg py-10 text-center border border-dashed border-gray-700 rounded-lg no-orders-message">
+                    No new orders are currently available.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.js"></script>
+<script>
+    // Function to generate the HTML card for a new order
+    function createOrderCardHTML(order) {
+        const paymentBadge = order.payment_status == 'paid'
+            ? `<span id="payment-status-${order.id}" class="px-3 py-1 text-xs font-bold leading-none text-green-100 bg-green-600 rounded-full">PAID ONLINE</span>`
+            : `<span id="payment-status-${order.id}" class="px-3 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">COD - PENDING</span>`;
+        
+        // Build the list of items
+        let itemsListHTML = order.items.map(item => `
+            <li class="flex justify-between text-sm text-gray-400">
+                <span class="font-medium text-white">${item.name} (${item.size})</span>
+                <span>${item.qty} x ₹${item.price_each.toFixed(2)}</span>
+                ${item.notes ? `<p class="text-xs italic text-gray-500">Note: ${item.notes}</p>` : ''}
+            </li>
+        `).join('');
+
+        const pickFormAction = `/maker/pick/${order.id}`;
+
+        return `
+            <div class="bg-gray-900 rounded-lg shadow-xl p-6 flex flex-col border border-gray-800 transition duration-300 ease-in-out hover:shadow-orange-500/30 hover:border-orange-500 order-card new-arrival" id="order-card-${order.id}">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                    <div class="mb-4 sm:mb-0">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <p class="text-xl font-bold text-yellow-400">Order ID: <span class="text-white">#${order.id}</span></p>
+                            ${paymentBadge} 
+                        </div>
+                        <p class="text-sm text-gray-400 font-medium">Placed At: ${order.placed_at}</p>
+                        <p class="text-lg text-white mt-2 font-semibold">Total Amount: <span class="font-extrabold text-orange-400">₹${order.total.toFixed(2)}</span></p>
+                    </div>
+                    <form method="POST" action="${pickFormAction}" class="maker-pick-form">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-md shadow-lg transition duration-150 transform hover:scale-[1.03]">
+                            Start Making
+                        </button>
+                    </form>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <h3 class="text-md font-bold text-white mb-2">Order Details:</h3>
+                    <ul class="space-y-1">
+                        ${itemsListHTML}
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const ordersListContainer = document.getElementById('orders-list-container');
+        let ordersGrid = document.getElementById('orders-grid');
+        
+        // Connect to the specific maker namespace
+        const socket = io.connect('/maker');
+        const socket2 = io(); // Default namespace for other events
+
+        socket2.on('payment_status_update', function(data) {
+            console.log('Payment status update received via WebSocket:', data);
+            // Ensure the status is 'paid', regardless of capitalization
+            if (data.status === 'Paid' || data.status === 'paid') {
+                const orderCard = document.getElementById(`order-card-${data.order_id}`);
+                
+                if (orderCard) {
+                    console.log(`Payment confirmed for order #${data.order_id}. Updating status.`);
+                    
+                    // Select the specific payment status badge using its unique ID
+                    const statusElement = orderCard.querySelector(`#payment-status-${data.order_id}`); 
+                    
+                    if (statusElement) {
+                        // 1. Update text content
+                        statusElement.textContent = 'PAID ONLINE'; 
+                        
+                        // 2. Update styling: Remove pending (red) classes and add paid (green) classes
+                        statusElement.classList.remove('text-red-100', 'bg-red-600');
+                        statusElement.classList.add('text-green-100', 'bg-green-600', 'animate-pulse');
+
+                        // 3. Remove the pulse effect after 3 seconds
+                        setTimeout(() => {
+                            statusElement.classList.remove('animate-pulse');
+                        }, 3000);
+                    }
+                }else{
+                    console.log(`Order card for order #${data.order_id} not found in the DOM.`);
+                }
+            }
+        });
+
+        
+        // --- 1. HANDLE NEW ORDERS (ADD CARD) ---
+        socket.on('new_order', function(data) {
+            const orderData = data.order;
+            console.log('New order received via WebSocket:', orderData);
+            
+            if (!ordersListContainer) return;
+
+            // Initialize ordersGrid if it was empty on page load (i.e., it holds the 'No orders' message)
+            const noOrdersMsg = ordersListContainer.querySelector('.no-orders-message');
+            if (noOrdersMsg) {
+                noOrdersMsg.remove(); // Remove the "No orders" message
+                
+                // If the grid was wrapped by the main container and the grid element itself holds the message
+                if (!ordersGrid || ordersGrid.children.length === 0) {
+                     ordersGrid.innerHTML = ''; // Clear the message content
+                }
+            }
+            
+            // Check if the order card already exists
+            if (document.getElementById(`order-card-${orderData.id}`)) {
+                 console.log(`Order # ${orderData.id} already exists.`);
+                 return;
+            }
+
+            // Generate the HTML for the new card
+            const newCardHTML = createOrderCardHTML(orderData);
+            
+            // Insert the new card into the DOM at the top of the list
+            ordersGrid.insertAdjacentHTML('afterbegin', newCardHTML);
+            
+            // Highlight the new arrival
+            const newCardElement = document.getElementById(`order-card-${orderData.id}`);
+            if (newCardElement) {
+                newCardElement.style.boxShadow = '0 0 20px rgba(255, 165, 0, 0.9)';
+                setTimeout(() => {
+                    newCardElement.style.boxShadow = 'none';
+                }, 1500);
+            }
+        });
+
+
+        // --- 2. HANDLE ORDER TAKEN BY ANOTHER MAKER (REMOVE CARD) ---
+        socket.on('order_picked', (data) => {
+            console.log(`Order # ${data.order_id} picked by Maker ${data.maker_name}. Removing from display.`);
+            
+            const orderCard = document.getElementById(`order-card-${data.order_id}`);
+            
+            if (orderCard) {
+                // Apply transition styles
+                orderCard.style.opacity = '0';
+                orderCard.style.maxHeight = '0px';
+                orderCard.style.padding = '0';
+                orderCard.style.border = 'none';
+                orderCard.style.transition = 'opacity 0.5s ease-out, max-height 0.5s ease-out, padding 0.5s ease-out';
+                
+                // Remove the element from the DOM after the animation completes
+                setTimeout(() => {
+                    orderCard.remove();
+                    
+                    // Logic to show "No orders" message if the list is now empty
+                    const remainingOrders = ordersGrid ? ordersGrid.querySelectorAll('.order-card') : [];
+                    if (remainingOrders.length === 0) {
+                        if (ordersGrid) {
+                            // Display the "No orders" message
+                            ordersGrid.innerHTML = `
+                                <p class="text-gray-400 text-lg py-10 text-center border border-dashed border-gray-700 rounded-lg no-orders-message">
+                                    No new orders are currently available.
+                                </p>
+                            `;
+                        }
+                    }
+                }, 500); 
+            }
+        });
+
+        
+        socket.on('connect', () => console.log('WebSocket Connected to /maker.'));
+        socket.on('disconnect', () => console.log('WebSocket Disconnected.'));
+    });
+</script>
+{% endblock %}

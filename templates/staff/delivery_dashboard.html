@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+
+{% block title %}Delivery Dashboard{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            borderRadius: {
+              'xl': '0.75rem',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        /* Custom styles for emphasis and smooth interaction, matching the dark theme */
+        .metric-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.5); /* Darker shadow for contrast */
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+        }
+        .due-amount-display {
+            font-size: 2.5rem;
+            line-height: 1;
+        }
+        @media (min-width: 768px) {
+            .due-amount-display {
+                font-size: 3rem;
+            }
+        }
+        /* Custom button style mimicking the orange accent in layout_style.css 
+           -- REMOVED .order-button styles as they conflict with the new design -- 
+        */
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h1 class="text-3xl font-extrabold text-white mb-2 md:mb-0">
+                Hi, {{ current_user.email.split('@')[0]|title }}!
+            </h1>
+            <p class="text-gray-400 text-lg">Your Performance Snapshot</p>
+        </div>
+
+        <div class="mb-10">
+            <a href="{{ url_for('delivery_orders') }}" 
+               class="w-full inline-flex justify-center items-center px-8 py-4 border-2 border-orange-500 text-lg font-bold rounded-full shadow-lg bg-black text-white transition duration-150 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                <i data-lucide="route" class="w-6 h-6 mr-3"></i> Go to Assigned Orders
+            </a>
+        </div>
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="p-4 rounded-xl text-sm border 
+                            {% if category == 'success' %}bg-green-700 text-green-100 border-green-500{% elif category == 'error' %}bg-red-700 text-red-100 border-red-500{% else %}bg-blue-700 text-blue-100 border-blue-500{% endif %}">
+                            <i data-lucide="info" class="w-4 h-4 inline-block mr-2"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="metric-card bg-gray-800 p-6 rounded-xl border-l-4 border-orange-500">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-300">Cash Due (CoD)</h2>
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-orange-500"></i>
+                </div>
+                <p class="due-amount-display font-extrabold text-orange-300 mt-6">
+                    ₹{{ "{:,.2f}".format(data.co_due) }}
+                </p>
+                <div class="mt-4">
+                    {% if data.co_due > 0.01 %}
+                    <a href="{{ url_for('delivery_pay_due') }}" class="text-sm font-medium text-blue-400 hover:text-blue-200 flex items-center">
+                        <i data-lucide="credit-card" class="w-4 h-4 mr-1"></i> Pay Now
+                    </a>
+                    {% else %}
+                    <span class="text-sm text-green-400 font-medium">Balance Cleared!</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="metric-card bg-gray-800 p-6 rounded-xl border-l-4 border-indigo-500">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-300">Parcels Delivered</h2>
+                    <i data-lucide="package-check" class="w-6 h-6 text-indigo-500"></i>
+                </div>
+                <p class="text-5xl font-extrabold text-indigo-400 mt-2">
+                    {{ data.deliveries_today }}
+                </p>
+                <p class="text-sm text-gray-500 mt-3">
+                    Total deliveries today
+                </p>
+            </div>
+
+            <div class="metric-card bg-gray-800 p-6 rounded-xl border-l-4 border-green-500">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-300">Today's Commission</h2>
+                    <i data-lucide="wallet" class="w-6 h-6 text-green-500"></i>
+                </div>
+                <p class="text-5xl font-extrabold text-green-400 mt-2">
+                    ₹{{ "{:,.2f}".format(data.total_commission_today) }}
+                </p>
+                <p class="text-sm text-gray-500 mt-3">
+                    Your gross earnings
+                </p>
+            </div>
+
+        </div> </div>
+</div>
+
+<script>
+    // Initialize Lucide icons after the page loads
+    lucide.createIcons();
+</script>
+{% endblock %}

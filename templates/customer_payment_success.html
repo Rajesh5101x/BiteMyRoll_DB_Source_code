@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block title %}Payment Complete!{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-gray-900 rounded-2xl shadow-2xl p-8 md:p-12 text-center border-4 border-yellow-500/50 transform transition duration-500 hover:scale-[1.01] hover:shadow-yellow-500/40">
+        
+        <!-- Icon -->
+        <div class="mb-6">
+            <svg class="w-20 h-20 text-green-400 mx-auto animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        
+        <!-- Main Message -->
+        <h1 class="text-4xl md:text-5xl font-extrabold text-yellow-400 mb-4 tracking-tight">
+            Order Paid!
+        </h1>
+        <p class="text-xl text-gray-200 mb-8">
+            Your payment was received successfully. Thank you for choosing BiteMyRoll!
+        </p>
+
+        <!-- Order Details -->
+        {% if order %}
+        <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 mb-8">
+            <div class="flex justify-between items-center py-2 border-b border-gray-700">
+                <span class="text-gray-400 font-medium">Order Reference:</span>
+                <span class="text-white font-semibold">#{{ order.id }}</span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-700">
+                <span class="text-gray-400 font-medium">Payment Status:</span>
+                <span class="text-green-400 font-semibold">Confirmed</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <a href="{{ url_for('home') }}" class="inline-flex items-center justify-center w-full md:w-auto px-8 py-3 border border-transparent text-lg font-bold rounded-xl shadow-sm text-gray-900 bg-yellow-400 hover:bg-yellow-500 transition duration-150 transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 focus:ring-offset-gray-900">
+            Continue Shopping
+            <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

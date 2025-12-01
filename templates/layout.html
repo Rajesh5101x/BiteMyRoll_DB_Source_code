@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/static/layout_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+    .video-container {
+    position: relative;
+    width: 80px;
+    height: 90px;
+    overflow: hidden;
+    }
+
+    /* Eyes overlay - above video */
+    .eye-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    }
+
+    .eye {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ffa33f;
+    }
+
+    .eye.left {
+    top: 33px;
+    left: 42px;
+    }
+
+    .eye.right {
+    top: 30px;
+    left: 57px;
+    }
+
+    .pupil {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #000;
+    border-radius: 50%;
+    left: 3px;
+    top: 3px;
+    }
+
+    /* Video styling */
+    .hover-video {
+    width: 80px;
+    height: 90px;
+    object-fit: cover;
+    display: block;
+    }
+
+    @media (max-width:768px){
+        .eye-overlay{
+            display: none;
+        }
+
+        .video-container{
+            width: 45px;
+            height: 53px
+        }
+        
+        .hover-video{
+            width: 45px;
+            height: 55px
+        }
+        #avatar{
+            padding-left: 0px;
+        }
+        .bmr-authe{
+            gap: 0.7rem;
+        }
+    }
+  </style>
+  <style>
+.cart-container {
+    position: relative;
+    display: inline-block;
+}
+
+.cart-popup {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background-color: white;
+    border: 1px solid #ccc;
+    min-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.cart-container:hover .cart-popup {
+    display: block;
+}
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.cart-empty {
+    text-align: center;
+    color: gray;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: revert;
+  font-weight: revert;
+}
+
+.locinput{
+    width: 93%;
+    padding: 0.65rem 0.8rem;
+    background-color: #0d0d0d;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #f1f1f1;
+    font-size: 0.95rem;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body > *:not(footer) {
+  flex: 1 0 auto; /* Content grows/shrinks */
+}
+
+footer {
+  flex-shrink: 0; /* Stays at the bottom */
+}
+
+
+</style>
+
+<style>
+    .fot-nav a {
+        text-decoration: none;
+        color: #b5b5b5;
+        transition: color 0.3s ease;
+    }
+
+    .fot-nav a:hover {
+        color: #ff9d2d; /* Hover orange effect */
+    }
+
+    .earnings-badge {
+        background-color: #28a745; /* Green background */
+        color: white; /* White text */
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.85em; /* Slightly smaller font */
+        font-weight: 700;
+        margin-left: 10px;
+    }
+</style>
+
+</head>
+<body id="body">
+    <div>
+        <nav class="bmr-nav">
+            <!-- <div class="logo-wrapper">
+                <a href="{{ url_for('home') }}">
+                    <img src="/static/images/logo with text bg-rmv.png"
+                        alt="BiteMyRoll"
+                        class="logo-img">
+                </a>
+            </div> -->
+
+            <div style="display: flex; flex-direction: row; align-items: center;">
+                <a href="{{ url_for('home') }}" id="avatar">
+                    <div class="video-container">
+                        <div class="eye-overlay">
+                            <div class="eye left"><div class="pupil"></div></div>
+                            <div class="eye right"><div class="pupil"></div></div>
+                        </div>
+                        <video class="hover-video" muted loop preload="metadata" playsinline>
+                            <source src="{{ url_for('static', filename='images/background video 2.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('home') }}" style="display: flex; align-items: center; height: 100%;">
+                    <img src="/static/images/bitemyroll.png" alt="Plate" class="next-to-waiter logo-wrapper logo-img" />
+                </a>
+            </div>
+
+
+
+
+            <div class="bmr-links" style="margin-left: 2vw;">
+                <a href="{{ url_for('menu') }}">OUR MENU</a>
+                <a href="{{ url_for('orders') }}">YOUR ORDER</a>
+                <a href="{{ url_for('contact_form') }}">CONTACT</a>
+                <a href="{{ url_for('about') }}">ABOUT&nbsp;US</a>
+                {% if current_user.is_admin == 1 %}
+                    <a href="{{ url_for('dashboard') }}">DASHBOARD</a>
+                {% endif %}
+            </div>
+
+
+
+            {% if current_user.is_authenticated %}
+                <div id="location" >
+                    <button onclick="openLocationPopup()" style="background:none;border:none;cursor:pointer;color:white;">
+                        <!-- <i class="fa-solid fa-location-dot"></i> -->
+                        <span id="user-location-text" >
+                            {% set loc = current_user.street_road %}
+                            {% if loc %}
+                                <div style="color: aliceblue; margin-bottom: 5px;">
+                                    <i class="fas fa-map-marker-alt" style="margin-right: 6px; color: #FFAE36;"></i>
+                                    {{ current_user.street_road }}, {{ current_user.ward }}
+                                </div>
+
+                                <div style="color: aliceblue;">
+                                    <i class="fas fa-truck-loading" style="margin-right: 6px; color: #FFAE36;"></i>
+                                    Pickup: {{ current_user.pickup_point }}
+                                </div>
+                            {% else %}
+                                <div style="color: #FFAE36;">
+                                    <i class="fas fa-map-marker-alt" style="margin-right: 6px;"></i>
+                                    Set Location
+                                </div>
+                            {% endif %}
+
+
+                        </span>
+                    </button>
+                </div>
+
+                <div class="bmr-authe dropdown">
+                    
+                    <!-- Icon that toggles the menu -->
+                    <button id="userBtn" aria-haspopup="true" aria-expanded="false" onclick="showUser()" >
+                        <i class="fas fa-user" style="color: aliceblue;"></i>
+                    </button>
+                    <div class="cart-container">
+                        <a href="{{ url_for('cart') }}">
+                            <i class="fas fa-shopping-cart" style="margin-right: 5px; margin-top: 5px; font-size: large; color: aliceblue;" >
+                                {% if cart_data|length > 0 %}
+                                <div style="display:flex; justify-content:center; align-items:center; 
+                                            position: absolute; top: -8px; right:6px; 
+                                            color: #fff; font-size: 12px;
+                                            width: 20px; height: 20px;
+                                            border-radius: 50%; background-color: #d01616;">
+                                    {{ cart_data|length }}
+                                </div>
+                                {% endif %}
+
+                            </i>
+                        </a>
+                        <div class="cart-popup" style="background-color: #000; border-radius: 10px; z-index: 100000; border-color: #000;">
+                            {% if cart_data %}
+                                {% for item in cart_data %}
+                                    <div class="cart-item" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px; border-radius: 8px; background-color: #2c2c2c;">
+                                        <div>
+                                            <div style="color: #ffa33f; font-weight: bold;">
+                                                {{ item.name }}
+                                                <span style="color: #ddd; font-size: 12px;">({{ item.size }})</span>
+                                            </div>
+                                            <div style="color: #ccc; font-size: 13px; margin-top: 4px;">
+                                                Qty: {{ item.qty }}
+                                            </div>
+                                        </div>
+                                        <div style="color: #ffffff; font-weight: 500;">
+                                            ₹{{ item.subtotal }}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+
+                                    <hr style="border: 1px solid #555; margin-top: 12px;">
+
+                                    <div style="text-align: right; color: #fff; font-weight: bold; font-size: 16px; margin-top: 8px;">
+                                        Total: ₹{{ cart_total }} (incl. GST)
+                                    </div>
+
+                            {% else %}
+                                <div class="cart-empty">
+                                    <i class="fa-solid fa-cart-shopping"></i><br>
+                                    Your cart is empty
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Dropdown menu -->
+                    <div id="userMenu" class="dropdown-menu">
+                        <!-- User header -->
+                        <div class="dropdown-user">
+                            <i class="fas fa-user-circle big-icon"></i>
+                            <span class="user-email">{{ current_user.email }}</span>
+                        </div>
+                        <hr>
+                        {% if current_user.is_admin == 3 %}
+                            <a href="{{ url_for('delivery_pay_due') }}" class="dropdown-item due-link">
+                                <i class="fas fa-hand-holding-usd" style="color: #ff9800;"></i> 
+                                <span style="font-weight: 600;">Pay Cash Due</span>
+                                <!-- Existing due amount display -->
+                                <span class="due-badge">
+                                    ₹{{ "{:,.2f}".format(current_user.cash_due_by_delivery_boy) }}
+                                </span>
+                            </a>
+                            <hr>
+                        {% endif %}
+
+                        <a href="{{ url_for('change_password') }}">Change&nbsp;Password</a>
+                        <a href="{{ url_for('logout') }}">Log&nbsp;Out</a>
+                    </div>
+                    <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                    <div class="mobile-menu" id="mobileMenu" >
+                        <a href="{{ url_for('menu') }}">OUR MENU</a>
+                        <a href="{{ url_for('orders') }}">YOUR ORDER</a>
+                        <a href="{{ url_for('contact_form') }}">CONTACT</a>
+                        <a href="{{ url_for('about') }}">ABOUT US</a>
+                        {% if current_user.is_admin == 1 %}
+                            <a href="{{ url_for('dashboard') }}">DASHBOARD</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="bmr-auth">
+                    <a href="{{ url_for('login') }}"  class="outline">LOGIN</a>
+                    <a href="{{ url_for('signup') }}" class="solid"  id="signin">SIGN&nbsp;UP</a>
+                </div>
+                <div class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <div class="mobile-menu" id="mobileMenu">
+                    <a href="{{ url_for('menu') }}">OUR MENU</a>
+                    <a href="{{ url_for('orders') }}">YOUR ORDER</a>
+                    <a href="{{ url_for('contact_form') }}">CONTACT</a>
+                    <a href="{{ url_for('about') }}">ABOUT US</a>
+                    <a href="{{ url_for('login') }}">LOGIN</a>
+                    <a href="{{ url_for('signup') }}">SIGN UP</a>
+                </div>
+            {% endif %}
+        </nav>
+    </div>
+
+    
+
+
+    {% block content %}
+    {% endblock %}
+
+    <div id="locationPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;justify-content:center;align-items:center;">
+        <div style="background:#1a1a1a;padding:2rem;border-radius:10px;max-width:400px;text-align:center;position:relative;">
+            <h2 style="color: #ffa33f;">Set Your Delivery Location</h2>
+
+            <input type="text" id="street" placeholder="Street / Road" style="width:100%;padding:0.5rem;margin-top:0.5rem;" class="locinput">
+            <input type="text" id="ward" placeholder="Ward / Locality" style="width:100%;padding:0.5rem;margin-top:0.5rem;" class="locinput">
+            <input type="text" id="city" placeholder="City" style="width:100%;padding:0.5rem;margin-top:0.5rem;" class="locinput">
+            <input type="text" id="pincode" placeholder="Pincode" style="width:100%;padding:0.5rem;margin-top:0.5rem;" class="locinput">
+            <input type="text" id="state" placeholder="State" style="width:100%;padding:0.5rem;margin-top:0.5rem;" class="locinput">
+            <input type="text" id="country" placeholder="Country" style="width:100%;padding:0.5rem;margin-top:0.5rem;" class="locinput">
+            <textarea id="pickupPoint" placeholder="Describe the pickup point (e.g., near the main gate)" style="width:100%;padding:0.5rem;margin-top:0.5rem;"  class="locinput"></textarea>
+
+            <button onclick="submitLocation()" style="margin:1rem 0; background-color: #ffa33f;height: 30px;width: 120px;border-radius: 14px;">Save Location</button><br>
+            <button onclick="getLocationFromGPS()" style="background-color: #ffa33f;height: 30px;width: 120px;border-radius: 14px;">Use My GPS</button>
+            <a href="{{ url_for('map') }}">
+                <button style="margin:1rem 0; background-color: #ffa33f; height: 30px; width: 120px; border-radius: 14px;">
+                    Use Map
+                </button>
+            </a>
+            <button onclick="closeLocationPopup()" style="position:absolute;top:10px;right:15px;background:none;border:none;font-size:1.5rem;color: aliceblue;">&times;</button>
+        </div>
+    </div>
+
+
+    <div id="toast-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="toast {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+    </div>
+
+
+<footer style="background-color: #1e1e1e; color: #e0e0e0; padding: 50px 20px 20px; font-family: Arial, sans-serif;">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px;">
+
+        <!-- Brand & About -->
+        <div style="flex: 1; min-width: 250px;">
+            <a href="{{ url_for('home') }}" style="display: flex; align-items: center; text-decoration: none; color: inherit; margin-bottom: 15px;">
+                <img src="/static/images/bitemyroll.png" alt="BiteMyRoll Logo" style="height: 60px; margin-right: 10px;">
+            </a>
+            <p style="line-height: 1.6; font-size: 0.95rem; color: #b5b5b5;">
+                Delicious rolls and refreshing beverages, delivered fresh to your doorstep.  
+                Order online and enjoy a smooth, hassle-free food ordering experience.
+            </p>
+            <div class="fot-nav" style="margin-top: 15px;">
+                <a href="#" style="margin-right: 12px; font-size: 1.4rem;" class="nav-link"><i class="fab fa-facebook" ></i></a>
+                <a href="#" style="margin-right: 12px; font-size: 1.4rem;"><i class="fab fa-instagram"></i></a>
+                <a href="#" style="margin-right: 12px; font-size: 1.4rem;"><i class="fab fa-twitter"></i></a>
+            </div>
+        </div>
+
+        <!-- Company Links -->
+        <div class="fot-nav" style="flex: 1; min-width: 200px;">
+            <h3 style="font-size: 2.0rem; margin-bottom: 15px; font-weight: bold;">Company</h3>
+            <ul style="list-style: none; padding: 0; margin: 0; line-height: 2;">
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('menu') }}">Menu</a></li>
+                <li><a href="{{ url_for('about') }}">About Us</a></li>
+                <li><a href="{{ url_for('contact_form') }}">Contact</a></li>
+            </ul>
+        </div>
+
+        <!-- Get in Touch -->
+        <div style="flex: 1; min-width: 200px;">
+            <h3 style="font-size: 2rem; margin-bottom: 15px; font-weight: bold;">Get in touch</h3>
+            <p style="margin: 5px 0; color: #b5b5b5;">+91-7978262400</p>
+            <p style="margin: 5px 0; color: #b5b5b5;">bitemyroll@gmail.com</p>
+        </div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
+    <p style="text-align: center; font-size: 0.9rem; color: #888;">
+        © 2025 BiteMyRoll. All rights reserved.
+    </p>
+</footer>
+
+<!-- Font Awesome for icons -->
+
+  
+    <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>   
+</body>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const btn   = document.getElementById("userBtn");
+    const menu  = document.getElementById("userMenu");
+    btn?.addEventListener("click", () => {
+        menu.classList.toggle("show");
+        btn.setAttribute("aria-expanded", menu.classList.contains("show"));
+    });
+    // click outside to close
+    document.addEventListener("click", e => {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove("show");
+            btn.setAttribute("aria-expanded", "false");
+        }
+    });
+});
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script type="application/json" id="location-data-json">
+  {{ {
+    "street_road": current_user.street_road or "",
+    "ward": current_user.ward or "",
+    "area": current_user.area or "",
+    "pincode": current_user.pincode or "",
+    "state": current_user.state or "",
+    "country": current_user.country or "",
+    "pickup_point": current_user.pickup_point or "",
+    "lat": current_user.lat or "",
+    "lon": current_user.lon or ""
+  } | tojson }}
+
+  
+</script>
+
+</html>

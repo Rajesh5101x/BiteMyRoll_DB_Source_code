@@ -1,0 +1,520 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #000000;
+            color: #eaeaea;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #111;
+            color: #FFAE36;
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 8px rgba(255, 174, 54, 0.1);
+        }
+
+        section {
+            padding: 40px 20px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: #FFAE36;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            color: #ffae36d0;
+        }
+
+        p {
+            color: #ddd;
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        #order {
+            background-image: url('/static/images/background 2 conv 1.png');
+            height: 88vh;
+            width: 90vw;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 60px;
+        }
+
+        #order-div {
+            min-height: 218px;
+            max-width: 541px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 12px;
+            animation: twinkle-shadow 2s infinite alternate;
+        }
+
+        #order-div h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        #order-div h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        #order-btn {
+            background: transparent;
+            padding: 0.6rem 1.6rem;
+            border-radius: 6px;
+            border: 1px solid #FFAE36;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(255, 174, 54, 0.4);
+            min-width: 364px;
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        #order-btn:hover {
+            color: #FFAE36;
+            background-color: rgba(255, 174, 54, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            #order {
+                padding: 20px;
+                height: auto;
+            }
+
+            #order-div {
+                padding: 7px;
+                min-height: 100px;
+                width: 180px;
+                position: absolute;
+                left: 31px;
+            }
+
+            #order-div h1 {
+                font-size: 0.76rem;
+                margin-bottom: 1px;
+            }
+
+            #order-div h3 {
+                font-size: 0.6rem;
+                margin-bottom: 10px;
+            }
+
+            .w-6 {
+                width: 1.0rem;
+            }
+
+            .h-10 {
+                height: 1.8rem;
+            }
+            .w-1 {
+                width: 0.15rem;
+            }
+
+            .h-3 {
+                height: 0.5rem;
+            }
+
+            #order-btn {
+                width: 100%;
+                padding: 0.5rem;
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+
+            section {
+                padding: 30px 15px;
+            }
+            .order-btn2{
+                width: 100px;
+            }   
+            .right-8{
+                right: 1rem;
+            }
+                
+            .bottom-20 {
+                bottom: 0.8rem;
+            }
+        }
+
+
+        #order {
+            position: relative;
+            height: 93vh;
+            width: 99vw;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 60px;
+        }
+
+        #order video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 1;
+        }
+
+        #order-content {
+            position: relative;
+            z-index: 2;
+        }
+
+    </style>
+
+    <style>
+    :root {
+      --primary: #fbbf24;
+    }
+
+    
+    
+    .border-primary { border-color: var(--primary); }
+    .bg-primary { background-color: var(--primary); }
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: revert;
+  font-weight: revert;
+}
+
+  </style>
+
+
+<style>
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out both;
+}
+</style>
+
+<style>
+    a{
+        text-decoration: none;
+    }
+    h1 {
+        color: #FFAE36;
+        padding-bottom: 5px;
+        font-size: 2.7rem;
+        text-align: center; 
+    }
+
+    .content-section{
+        min-height: 67vh;
+        padding-bottom: 20px;
+    }
+    .roll-card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .roll-card {
+        background-color: #1a1a1a;
+        border-radius: 8px;
+        overflow: hidden;
+        width: 250px;
+        color: #f1f1f1;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        transition: transform 0.6s ease, box-shadow 0.6s ease
+    }
+
+    .roll-card:hover {
+        transform: translateY(-6px);
+        animation: twinkle-shadow 2s infinite alternate;
+    }
+
+    /* Twinkling shadow animation */
+    @keyframes twinkle-shadow {
+        0% {
+            box-shadow: 0 4px 15px 2px rgba(255, 157, 45, 0.2);
+        }
+        50% {
+            box-shadow: 0 6px 20px 4px rgba(255, 157, 45, 0.6);
+        }
+        100% {
+            box-shadow: 0 4px 12px 2px rgba(255, 157, 45, 0.3);
+        }
+    }
+
+    .roll-card img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+    }
+
+    .roll-card h3 {
+        color: #FFAE36;
+        margin: 0.75rem 0 0.5rem;
+    }
+
+    .roll-card p {
+        padding: 0 1rem 1rem;
+        font-size: 0.95rem;
+        color: #ccc;
+    }
+
+    @media (max-width: 768px) {
+        .roll-card-container {
+        flex-direction: row;
+        align-items: start;
+        }
+        .roll-card{
+            width: 42vw;
+        }
+
+        .roll-card img {
+        width: 100%;
+        height: auto;
+        }
+
+        h1{
+            font-size: 15px;
+        }
+        .roll-card h3{
+            font-size: 13px;
+            margin: 5px
+        }
+
+        .roll-card p{
+            font-size: 7px;
+            margin: 0px 0px;
+        }
+        .diet-badge{
+            font-size: 10px;
+        }
+        .min-h-screen{
+            min-height: 50px;
+        }
+        #order{
+            height:18vh;
+        }
+        #order-div h1 {
+            font-size: 0.7rem;
+        }
+        #order-div h3 {
+            font-size: 0.5rem;
+        }
+        #order-btn{
+            min-width: 100px;
+            font-size: 0.6rem;
+            padding: 0.2rem;
+            margin-bottom: 8px;
+        }
+        #h1{
+            font-size: 30px;
+        }
+    }
+    .diet-badge{
+        position: absolute;
+        padding: 10px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-size: revert;
+        font-weight: revert;
+    }
+    #h2{
+        font-size: 40px; 
+        margin-top: 50px;
+    }
+
+</style>
+
+    <div id="order" class="min-h-screen flex items-center justify-center relative">
+        <!-- Video -->
+        <video id="introVideo" autoplay muted playsinline onended="showImage()" preload="auto">
+            <source src="{{ url_for('static', filename='roll commercial.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Skip Button -->
+        <button id="skip-btn" onclick="showImage()" class="absolute bottom-20 right-8 z-[9999] px-4 py-2 bg-black/60 text-white border border-[#FFAE36] rounded hover:bg-black/80 transition-all duration-300 text-sm font-semibold">
+            Skip Commercial
+        </button>
+
+
+
+        <div id="order-div" style="display: none;">
+            <h1>BiteMyRoll's Online Ordering</h1>
+            <h3>Yummy rolls delivered fast & fresh</h3>
+            <a href="{{ url_for('menu') }}" id="order-btn">ORDER ONLINE NOW</a>
+        </div>
+
+        <!-- Scroll Symbol -->
+        <div id="scroll-symbol" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-[9999]">
+            <div class="w-6 h-10 border-2 border-primary rounded-full flex justify-center">
+                <div class="w-1 h-3 bg-primary rounded-full mt-2 animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div style="display: flex; align-items: center; flex-direction: column; gap: 1rem; min-height: 330px; justify-content: center;">
+        <h2  id="h1">Ready to Experience Premium Rolls?</h2>
+        <h4 style="font-size: 17px;">Join thousands of satisfied customers and taste the BiteMyRoll difference today.</h4>
+        <section class="content-section">
+            <h1>Explore Our Rolls and Beverages</h1>
+            <div class="roll-card-container">
+                <a href=" {{ url_for('detail',type='Veg Delight Roll') }}">
+                    <div class="roll-card">
+                    <div class="diet-badge"><span style="color: green;">●</span> Veg</div>
+                    <img src="/static/images/rolls/veg roll.png" alt="Veg Delight Roll">
+                    <h3>Veg Delight Roll</h3>
+                    <p>Stuffed with spiced potatoes, paneer, fresh veggies, and mint chutney wrapped in a soft roti.</p>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href=" {{ url_for('detail',type='Classic Chicken Roll') }}">
+                    <div class="roll-card">
+                        <div class="diet-badge"><span style="color: red">●</span> Non-Veg</div>
+                        <img src="/static/images/rolls/Classic Chicken Roll.png" alt="Classic Chicken Roll">
+                        <h3>Classic Chicken Roll</h3>
+                        <p>Juicy grilled chicken pieces tossed in spicy sauce and wrapped with onions and mayo.</p>
+                    </div>
+                </a>
+
+                <!-- Card 3 -->
+                <a href=" {{ url_for('detail',type='Kolkata Kathi Roll') }}">
+                    <div class="roll-card">
+                        <div class="diet-badge">
+                            <span style="color:#ffd54f;font-size:1rem;line-height:1;">▲</span>
+                            Egg
+                        </div>
+                        <img src="/static/images/rolls/Kathi Roll.png" alt="Kolkata Kathi Roll">
+                        <h3>Kolkata Kathi Roll</h3>
+                        <p>Egg-layered paratha stuffed with flavorful kebabs, onions, and tangy sauces.</p>
+                    </div>
+                </a>
+                <!-- Card 4 -->
+                <a href=" {{ url_for('detail',type='Double Egg Roll') }}">
+                    <div class="roll-card">
+                        <div class="diet-badge">
+                            <span style="color:#ffd54f;font-size:1rem;line-height:1;">▲</span>
+                            Egg
+                        </div>
+                    <img src="/static/images/rolls/Double Egg Roll.png" alt="Double Egg Roll">
+                    <h3>Double Egg Roll</h3>
+                    <p>Flaky paratha with double fried egg, onion rings, and tangy spices — a street-style favorite.</p>
+                    </div>
+                </a>
+                <!-- Card 5 -->
+                <a href=" {{ url_for('detail',type='Spicy Peri Peri Roll') }}">
+                    <div class="roll-card">
+                        <div class="diet-badge"><span style="color: red;">●</span> Non-Veg</div>
+                        <img src="/static/images/rolls/Spicy Peri Peri Roll.png" alt="Spicy Peri Peri Roll">
+                        <h3>Spicy Peri Peri Roll</h3>
+                        <p>Red-hot peri peri marinated fillings with crunchy onions and tangy sauce.</p>
+                    </div>
+                </a>
+                
+            </div>
+        </section>
+        <a href="{{ url_for('menu') }}" id="order-btn" class="order-btn2" >ORDER ONLINE NOW</a>
+    </div>
+    <header>
+        <h1>BiteMyRoll: Rolling Happiness to Your Doorstep</h1>
+    </header>
+    <div class="relative overflow-hidden transition-transform duration-500 ease-in-out transform hover:scale-[1.015] hover:shadow-2xl group bg-[#111] border-l-4 border-[#FFAE36] p-10 mb-10 rounded-xl backdrop-blur-sm hover:backdrop-blur-md wind-hover">
+        <section style="background-color: #111; border-left: 4px solid #FFAE36; padding: 40px 30px; margin: 30px auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);" >
+            <h2 class="text-2xl font-semibold text-[#FFAE36] mb-3">What's better than a crispy, juicy roll?</h2>
+            <p>Enjoying it <strong>in the comfort of your home</strong>, surrounded by people you love.</p>
+            <p class="mt-2">At <strong>BiteMyRoll</strong>, we believe in <span class="text-[#FFAE36] font-semibold">“Moments Wrapped Right.”</span> From promotions to lazy weekends — celebrate it all with our delicious rolls, delivered hot and fresh.</p>
+        </section>
+
+        <section style="background-color: #111; border-left: 4px solid #FFAE36; padding: 40px 30px; margin: 30px auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);">
+            <h2 class="text-2xl font-semibold text-[#FFAE36] mb-3">Something for Everyone</h2>
+            <p><strong>Veggies? Meat? Spice? Sweet?</strong> We’ve got it all covered.</p>
+            <p class="mt-2">From <span class="text-[#FFAE36] font-semibold">paneer tandoori</span> to <span class="text-[#FFAE36] font-semibold">chicken tikka</span> and melt-in-your-mouth dessert rolls — we’re rolling happiness in every bite.</p>
+        </section>
+
+        <section style="background-color: #111; border-left: 4px solid #FFAE36; padding: 40px 30px; margin: 30px auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);">
+            <h2 class="text-2xl font-semibold text-[#FFAE36] mb-3">Customize It Your Way</h2>
+            <p>Build your own roll with <strong>grilled chicken</strong>, <strong>spicy corn</strong>, or <strong>creamy mushroom</strong>.</p>
+            <p class="mt-2">Pick a base — classic, cheesy, or whole wheat — and top it with sauces that suit your mood.</p>
+        </section>
+
+        <section style="background-color: #111; border-left: 4px solid #FFAE36; padding: 40px 30px; margin: 30px auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);">
+            <h2 class="text-2xl font-semibold text-[#FFAE36] mb-3">Roll Combos Starting at ₹99</h2>
+            <p><span class="font-semibold text-[#FFAE36]">Two rolls. One unbeatable price.</span> Grab our Bite Combos at just ₹99 (regular) and ₹199 (large).</p>
+            <p class="mt-2">Perfect for sharing — or not. 😉</p>
+        </section>
+
+        <section style="background-color: #111; border-left: 4px solid #FFAE36; padding: 40px 30px; margin: 30px auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);">
+            <h2 class="text-2xl font-semibold text-[#FFAE36] mb-3">30-Minute Delivery</h2>
+            <p>We’re fast. Like, <strong>real fast</strong>.</p>
+            <p class="mt-2">With 500+ outlets and growing, BiteMyRoll brings piping hot rolls to your <strong>home, office, or college</strong> — all within 30 minutes.</p>
+        </section>
+
+        <section style="background-color: #111; border-left: 4px solid #FFAE36; padding: 40px 30px; margin: 30px auto; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 174, 54, 0.1);">
+            <h2 class="text-2xl font-semibold text-[#FFAE36] mb-3">Franchise With Us</h2>
+            <p><strong>Be part of the fastest-growing roll chain in India.</strong></p>
+            <p class="mt-2">Email us at <span class="text-[#FFAE36] font-semibold">franchise@bitemyroll.in</span> to get started.</p>
+            <p class="mt-2 text-red-400 font-medium">⚠️ Beware of fake agents. We only communicate via our official email.</p>
+        </section>
+
+    </div>
+<script>
+    function showImage() {
+        const orderDiv = document.getElementById('order');
+        const video = document.getElementById('introVideo');
+        const orderContent = document.getElementById('order-div');
+        const skipbtn = document.getElementById('skip-btn');
+
+        video.style.display = 'none';
+        orderContent.style.display = 'block';
+        skipbtn.style.display  = 'none';
+        orderDiv.style.backgroundImage = "url('/static/images/background 2 conv 1.png')";
+        stopAudio();
+    }
+
+    window.addEventListener('load', () => {
+        document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    
+
+
+</script>
+
+{% endblock %}

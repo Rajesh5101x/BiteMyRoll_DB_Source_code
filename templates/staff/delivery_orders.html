@@ -1,0 +1,367 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mx-auto p-6 lg:p-10">
+    <h1 class="text-3xl lg:text-4xl font-extrabold text-white mb-8 border-b-4 border-yellow-500 pb-3 uppercase tracking-wider">Orders Ready for Dispatch</h1>
+    
+    <div id="orders-list-container" class="grid gap-6">
+        
+        {% if available_orders %}
+            <div class="grid gap-6">
+                
+                {% for detail in available_orders %}
+                
+                {% set order = detail.order %}
+                {% set customer = detail.customer %}
+
+                <div id="order-card-{{ order.id }}" 
+                        class="bg-gray-900 rounded-lg shadow-xl p-6 flex flex-col justify-between items-start border border-gray-800 transition duration-300 ease-in-out hover:shadow-orange-500/30 hover:border-orange-500 order-card"
+                        data-customer-id="{{ customer.id }}"  
+                        data-order-id="{{ order.id }}"
+                    >
+                        
+                        <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-stretch">
+                            
+                            <div class="mb-4 sm:mb-0 w-full sm:w-1/2">
+                                
+                                <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-2">
+                                    
+                                    <p class="text-xl font-extrabold text-yellow-400">
+                                        Order ID: <span class="text-white">#{{ order.id }}</span>
+                                    </p>
+
+                                    <p class="text-lg text-white font-semibold flex items-center gap-x-2">
+                                        Payment Status: 
+                                        
+                                        <span id="payment-status-{{ order.id }}" class="
+                                            px-3 py-1 text-xs font-bold leading-none rounded-full
+                                            
+                                            {% if order.payment_status == 'paid' %}
+                                                text-green-100 bg-green-600
+                                            {% else %}
+                                                text-red-100 bg-red-600
+                                            {% endif %}
+                                        ">
+                                            {% if order.payment_status == 'paid' %}
+                                                PAID ONLINE
+                                            {% else %}
+                                                PAYMENT PENDING (COD)
+                                            {% endif %}
+                                        </span>
+                                    </p>                                    
+                                </div>
+                                <p class="text-lg text-white font-semibold">Total Amount: <span class="font-extrabold text-orange-400">₹{{ order.total }}</span></p>
+                                <p class="text-sm text-gray-400 font-medium mt-1">Placed At: {{ order.placed_at }}</p>
+                            </div>
+                            
+                            <div class="sm:text-left text-left w-full sm:w-1/2 mt-3 sm:mt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-gray-700 pt-3 sm:pt-0" 
+                                id="customer-address-box-{{ order.id }}">
+                                
+                                <p class="text-gray-300 text-lg font-bold mb-1 mt-2">
+                                    <i class="fas fa-map-marker-alt text-yellow-500 mr-2"></i> Address:
+                                </p>
+                                
+                                <p class="text-gray-200 text-base font-medium ml-6" 
+                                id="addr-street-road-{{ order.id }}">{{ customer.street_road }}</p>
+                                <p class="text-gray-200 text-base ml-6">
+                                    <span id="addr-area-{{ order.id }}">{{ customer.area }}</span>, 
+                                    <span id="addr-ward-{{ order.id }}">{{ customer.ward }}</span>
+                                </p>
+                                <p class="text-gray-200 text-base ml-6">
+                                    <span id="addr-city-{{ order.id }}">{{ customer.city }}</span> - 
+                                    <span class="font-semibold" id="addr-pincode-{{ order.id }}">{{ customer.pincode }}</span>
+                                </p>
+                                <p class="text-gray-200 text-base ml-6" 
+                                id="addr-state-country-{{ order.id }}">{{ customer.state }}, {{ customer.country }}</p>
+                                <p class="text-gray-200 text-sm ml-6 font-bold text-yellow-300" 
+                                id="addr-pickup-point-{{ order.id }}">Landmark: {{ customer.pickup_point }}</p>
+                            </div>
+                            </div>
+                        
+                        <form method="POST" action="{{ url_for('delivery_pick', order_id=order.id) }}" class="w-full mt-4 pt-4 border-t border-gray-700">
+                            <button type="submit" class="w-full px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-lg transition duration-150 transform hover:scale-[1.01]">
+                                Pick for Delivery
+                            </button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="grid gap-6"> 
+                <p class="text-gray-400 text-lg py-10 text-center border border-dashed border-gray-700 rounded-lg">
+                    No orders are currently waiting for delivery pickup.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io(); // Connects to the default namespace
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const ordersListContainer = document.getElementById('orders-list-container');
+        const mainOrdersContainer = document.getElementById('orders-list-container');
+
+        socket.on('location_update', function(data) {
+            console.log('Received location update via WebSocket:', data);
+            const updatedUserId = data.user_id;
+            
+            // 1. Find ALL order cards belonging to this customer ID.
+            // document.querySelectorAll returns a NodeList of ALL matching elements.
+            const orderCards = document.querySelectorAll(`.order-card[data-customer-id="${updatedUserId}"]`);
+
+            // Check if any cards were found for this user
+            if (orderCards.length > 0) {
+                console.log(`Address update received for user ID: ${updatedUserId}. Updating ${orderCards.length} cards.`);
+                
+                const newAddress = data;
+                
+                // 2. Iterate through each matching order card to update it individually.
+                orderCards.forEach(orderCard => {
+                    
+                    // Retrieve the unique order ID from the current card
+                    const orderId = orderCard.getAttribute('data-order-id');
+                    
+                    // 3. Update address fields using the unique IDs constructed with orderId
+                    // We use orderCard.querySelector() to search only within this one card.
+                    orderCard.querySelector(`#addr-street-road-${orderId}`).textContent = newAddress.street_road || '';
+                    orderCard.querySelector(`#addr-area-${orderId}`).textContent = newAddress.area || '';
+                    orderCard.querySelector(`#addr-ward-${orderId}`).textContent = newAddress.ward || '';
+                    orderCard.querySelector(`#addr-city-${orderId}`).textContent = newAddress.city || '';
+                    orderCard.querySelector(`#addr-pincode-${orderId}`).textContent = newAddress.pincode || '';
+                    
+                    // Update combined fields:
+                    const stateCountryElement = orderCard.querySelector(`#addr-state-country-${orderId}`);
+                    if (stateCountryElement) {
+                        stateCountryElement.textContent = `${newAddress.state || ''}, ${newAddress.country || ''}`;
+                    }
+
+                    const pickupElement = orderCard.querySelector(`#addr-pickup-point-${orderId}`);
+                    if (pickupElement) {
+                        pickupElement.textContent = `Landmark: ${newAddress.pickup_point || ''}`;
+                    }
+
+                    // 4. Flash the container using its unique ID
+                    const container = orderCard.querySelector(`#customer-address-box-${orderId}`);
+                    if (container) {
+                        container.classList.add('bg-yellow-800/50', 'ring-4', 'ring-yellow-400');
+                        setTimeout(() => {
+                            container.classList.remove('bg-yellow-800/50', 'ring-4', 'ring-yellow-400');
+                        }, 3000); // Flash for 3 seconds
+                    }
+                });
+            }
+        });
+
+        
+
+        socket.on('payment_status_update', function(data) {        
+            // This logic correctly uses data.order_id, which is contained in the broadcast data.
+            if (data.status === 'Paid') {
+                const orderCard = document.getElementById(`order-card-${data.order_id}`);
+                
+                if (orderCard) {
+                    console.log(`Payment confirmed for order #${data.order_id}. Updating status.`);
+                    const statusElement = orderCard.querySelector(`#payment-status-${data.order_id}`); 
+                    
+                    if (statusElement) {
+                        // 1. Update text to the paid status badge text
+                        statusElement.textContent = 'PAID ONLINE'; 
+                        
+                        // 2. Update styling to the paid badge classes
+                        statusElement.classList.remove('text-red-100', 'bg-red-600');
+                        statusElement.classList.add('text-green-100', 'bg-green-600', 'animate-pulse');
+                        // ... rest of the code
+                    }
+                }
+            }
+        });
+
+        
+       
+
+        function createOrderCardHTML(order, customer) {
+            // 1. Create the Payment Status Badge with the required ID
+            const paymentBadge = order.payment_status == 'paid'
+                ? `<span id="payment-status-${order.id}" class="px-3 py-1 text-xs font-bold leading-none text-green-100 bg-green-600 rounded-full">PAID ONLINE</span>`
+                : `<span id="payment-status-${order.id}" class="px-3 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">PAYMENT PENDING (COD)</span>`;
+
+            // 2. Create the Delivery Address Details block (IDs are already unique here)
+            const deliveryAddressDetails = `
+                <div class="sm:text-left text-left w-full sm:w-1/2 mt-3 sm:mt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-gray-700 pt-3 sm:pt-0" id="customer-address-box-${order.id}">
+                    <p class="text-gray-300 text-lg font-bold mb-1 mt-2">
+                        <i class="fas fa-map-marker-alt text-yellow-500 mr-2"></i> Address:
+                    </p>
+                    
+                    <p class="text-gray-200 text-base font-medium ml-6" id="addr-street-road-${order.id}">${customer.street_road}</p>
+                    <p class="text-gray-200 text-base ml-6">
+                        <span id="addr-area-${order.id}">${customer.area}</span>, 
+                        <span id="addr-ward-${order.id}">${customer.ward}</span>
+                    </p>
+                    <p class="text-gray-200 text-base ml-6">
+                        <span id="addr-city-${order.id}">${customer.city}</span> - 
+                        <span class="font-semibold" id="addr-pincode-${order.id}">${customer.pincode}</span>
+                    </p>
+                    <p class="text-gray-200 text-base ml-6" id="addr-state-country-${order.id}">${customer.state}, ${customer.country}</p>
+                    <p class="text-gray-200 text-sm ml-6 font-bold text-yellow-300" id="addr-pickup-point-${order.id}">Landmark: ${customer.pickup_point}</p>
+                </div>
+            `;
+
+            // 3. Return the full order card HTML with the critical data attributes added
+            return `
+                <div 
+                    class="bg-gray-900 rounded-lg shadow-xl p-6 flex flex-col justify-between items-start border border-gray-800 transition duration-300 ease-in-out hover:shadow-orange-500/30 hover:border-orange-500 order-card new-arrival" 
+                    id="order-card-${order.id}"
+                    data-customer-id="${customer.id}"  {# <-- ADDED: Allows location_update to find the card #}
+                    data-order-id="${order.id}"        {# <-- ADDED: Allows location_update to get the ID for lookups #}
+                >
+                    
+                    <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-stretch">
+                        
+                        <div class="mb-4 sm:mb-0 w-full sm:w-1/2">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <p class="text-xl font-bold text-yellow-400">Order ID: <span class="text-white">#${order.id}</span></p>
+                                ${paymentBadge} 
+                            </div>
+                            <p class="text-sm text-gray-400 font-medium">Placed At: ${order.placed_at}</p>
+                            <p class="text-lg text-white mt-2 font-semibold">Total Amount: <span class="font-extrabold text-orange-400">₹${order.total}</span></p>
+                        </div>
+
+                        ${deliveryAddressDetails} 
+                    </div>
+                    
+                    <form method="POST" action="/delivery/pick/${order.id}" class="mt-4 w-full sm:w-auto"> 
+                        <button type="submit" class="w-full px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-lg transition duration-150 transform hover:scale-[1.03]">
+                            Pick for Delivery
+                        </button>
+                    </form>
+                </div>
+            `;
+        };
+
+
+        // --- LISTENER FOR NEW ORDERS ---
+        socket.on('order_ready_for_delivery', function(data) {
+            // 1. Extract both Order and Customer data from the WebSocket payload
+            const orderData = data.order;
+            const customerData = data.customer; // <-- NEW: Safely assume customer data is sent with the order
+            
+            // Basic validation
+            if (!orderData || !customerData) {
+                console.error("WebSocket payload is missing order or customer data. Cannot render card.");
+                return;
+            }
+            
+            console.log('New order received via WebSocket:', orderData);
+            
+            // Assuming 'orders-list-container' is the main ID defined in delivery_orders.html
+            const mainOrdersContainer = document.getElementById('orders-list-container'); 
+            
+            if (!mainOrdersContainer) {
+                console.error("Main orders container (id='orders-list-container') not found.");
+                return;
+            }
+
+            // Find the actual grid where order cards should be inserted.
+            let ordersGrid = mainOrdersContainer.querySelector('.grid.gap-6');
+
+            // If there were no orders initially, ordersGrid will be null. Create it.
+            if (!ordersGrid) {
+                // Remove the "No orders" message if it exists
+                const noOrdersMsg = mainOrdersContainer.querySelector('.text-gray-400.text-center');
+                if (noOrdersMsg) { noOrdersMsg.remove(); }
+                
+                // Create the inner grid container
+                ordersGrid = document.createElement('div');
+                ordersGrid.classList.add('grid', 'gap-6');
+                mainOrdersContainer.appendChild(ordersGrid);
+            }
+            
+            // 2. Generate the HTML for the new card, passing both order and customer data
+            const newCardHTML = createOrderCardHTML(orderData, customerData); // <--- MODIFIED CALL
+            
+            // 3. Insert the new card into the DOM at the top of the list
+            ordersGrid.insertAdjacentHTML('afterbegin', newCardHTML);
+            
+            // 4. Optional: Add a smooth animation/glow to highlight the new order
+            const newCardElement = document.getElementById(`order-card-${orderData.id}`);
+            if (newCardElement) {
+                // Use Tailwind classes for a visual cue
+                newCardElement.classList.add('animate-pulse', 'ring-4', 'ring-orange-500/50');
+                setTimeout(() => {
+                    newCardElement.classList.remove('animate-pulse', 'ring-4', 'ring-orange-500/50');
+                }, 3000); // Glow for 3 seconds
+            }
+        });
+
+
+
+        socket.on('order_taken', (data) => {
+            console.log(`Order # ${data.order_id} claimed by another delivery boy. Removing from display.`);
+            
+            // This line uses the ID convention established above: "order-card-ID"
+            const orderCard = document.getElementById(`order-card-${data.order_id}`);
+
+            if (orderCard) {
+                // Optional: Fade out effect for smooth removal
+                orderCard.style.opacity = '0';
+                orderCard.style.maxHeight = '0px';
+                orderCard.style.paddingTop = '0px';
+                orderCard.style.paddingBottom = '0px';
+                orderCard.style.border = 'none';
+                orderCard.style.transition = 'opacity 0.5s ease-out, max-height 0.5s ease-out, padding 0.5s ease-out';
+                
+                // Remove the element from the DOM after the animation completes
+                setTimeout(() => {
+                    orderCard.remove();
+                    
+                    // Logic to show "No orders" message if the list is now empty
+                    const remainingOrders = ordersListContainer.querySelectorAll('.order-card');
+                    if (remainingOrders.length === 0) {
+                        ordersListContainer.innerHTML = `
+                            <p class="text-gray-400 text-lg py-10 text-center border border-dashed border-gray-700 rounded-lg">
+                                No orders are currently waiting for delivery pickup.
+                            </p>
+                        `;
+                    }
+                }, 500); 
+            }
+        });
+
+        
+        socket.on('connect', () => console.log('WebSocket Connected.'));
+        socket.on('disconnect', (reason) => {
+            console.warn('⚠️ WebSocket Disconnected:', reason);
+            // You might want to update a small status icon in the UI here
+        });
+
+        // 2. ROBUSTNESS FIX: Handle Reconnection Errors and Log
+        // This event is fired when Socket.IO fails to re-establish a connection after attempting
+        socket.on('reconnect_error', (error) => {
+            console.error('❌ WebSocket Reconnect Failed:', error);
+            // You can display a persistent message to the user here without blocking the app
+            // e.error('Connection lost. Attempting to reconnect...');
+        });
+
+        // 3. ROBUSTNESS FIX: Handle Reconnection Attempts (Optional but helpful for logging)
+        // The SocketIO client automatically attempts reconnection, but we can log it.
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`⏳ Attempting to reconnect to WebSocket... Attempt #${attemptNumber}`);
+        });
+
+        function handleConnectionRestoration() {
+            if (navigator.onLine && !socket.connected) {
+                console.log('🌍 Browser is back online. Forcing Socket.IO to connect...');
+                
+                socket.connect(); 
+            }
+        }
+        window.addEventListener('online', handleConnectionRestoration);
+
+        if(!socket.connected) {
+            socket.connect();
+        }
+    });
+</script>
+{% endblock %}

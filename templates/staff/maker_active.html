@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mx-auto p-6 lg:p-10">
+    <h1 class="text-3xl lg:text-4xl font-extrabold text-yellow-400 mb-6 border-b-4 border-white/20 pb-3 uppercase tracking-wider">
+        Preparation Ticket: Order #{{ order.id }}
+    </h1>
+
+    <div class="bg-gray-900 rounded-lg shadow-xl p-8 border border-gray-800">
+        
+        <div class="mb-6 border-b border-gray-700 pb-4">
+            <p class="text-xl font-bold text-white">Order ID: <span class="text-yellow-400">#{{ order.id }}</span></p>
+            <p class="text-xs text-gray-500 mt-1">Placed: {{ order.placed_at }} | Total: ₹{{ order.total }}</p>
+        </div>
+
+        <h3 class="mt-4 text-2xl text-white font-bold border-b-2 border-yellow-500 pb-2 mb-4 uppercase tracking-wider">Items for Preparation</h3>
+        
+        <div class="grid grid-cols-12 gap-4 text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-600 py-3">
+            <span class="col-span-1 text-center">Qty</span>
+            <span class="col-span-5">Roll / Item Name</span>
+            <span class="col-span-2">Size</span>
+            <span class="col-span-4">Special Note</span>
+        </div>
+        
+        <div class="space-y-3 mt-4">
+            {% for item in order.items %}
+            <div class="grid grid-cols-12 gap-4 text-base text-gray-200 bg-gray-800 p-3 rounded-md border-l-4 border-yellow-500/70">
+                
+                {# Column 1: Quantity (BRIGHT) #}
+                <span class="col-span-1 font-extrabold text-yellow-300 text-center text-lg">{{ item.qty }}</span>
+                
+                {# Column 2: Item Name (STANDARD) #}
+                <span class="col-span-5 font-medium text-lg text-white">{{ item.roll_id }}</span>
+                
+                {# Column 3: Size (BRIGHT) #}
+                <span class="col-span-2 text-md font-bold text-white italic">{{ item.size }}</span>
+                
+                {# Column 4: Special Note (ALERT COLOR) #}
+                <span class="col-span-2 text-md font-bold text-yellow-300 italic
+                    {% if item.note %}text-red-400 border-l-2 border-red-400 pl-2{% else %}text-gray-500{% endif %}">
+                    {% if item.notes %}<i class="fas fa-exclamation-triangle mr-1"></i> {{ item.notes }}{% else %} — {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <form method="POST" action="{{ url_for('maker_ready', order_id=order.id) }}" class="mt-10 text-center">
+            <button class="w-full md:w-2/3 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold rounded-md shadow-lg transition duration-150 transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-blue-500/50 uppercase tracking-wider">
+                Mark Ready for Delivery
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

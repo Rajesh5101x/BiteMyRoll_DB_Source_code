@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Pay Cash Due{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <!-- Include Tailwind CSS for modern styling (Assuming you use it) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .due-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #f97316; /* Orange color for due/liability */
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[80vh] bg-gray-50">
+    <div class="card bg-white p-8 md:p-10 rounded-xl max-w-lg w-full text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">
+            Clear Your Cash-on-Delivery Dues
+        </h1>
+
+        <div class="mb-8 p-6 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+            <p class="text-xl font-medium text-gray-700 mb-2">
+                Your Current Outstanding Due:
+            </p>
+            <!-- Assuming 'cash_due_by_delivery_boy' is passed to this template -->
+            <span class="due-amount">
+                ₹{{ "{:,.2f}".format(current_user.cash_due_by_delivery_boy) }}
+            </span>
+            <p class="text-sm text-gray-500 mt-2">
+                This amount represents collected CoD payments owed to the company.
+            </p>
+        </div>
+
+        <!-- The link/button that triggers the Flask route and Stripe checkout -->
+        <a href="{{ url_for('delivery_pay_due') }}" 
+           class="inline-flex items-center justify-center w-full px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v7a2 2 0 002 2h12a2 2 0 002-2V9zM4 14h6a.5.5 0 000-1H4a.5.5 0 000 1z" clip-rule="evenodd"></path></svg>
+            Pay ₹{{ "{:,.2f}".format(current_user.cash_due_by_delivery_boy) }} Now via Card
+        </a>
+
+        <a href="{{ url_for('delivery_dashboard') }}" class="block mt-4 text-sm text-gray-500 hover:text-gray-700">
+            Go back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

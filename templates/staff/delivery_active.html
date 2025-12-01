@@ -1,0 +1,554 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mx-auto p-6 lg:p-10">
+    <h1 class="text-3xl lg:text-4xl font-extrabold text-yellow-400 mb-8 border-b-4 border-white/20 pb-3 uppercase tracking-wider">Active Delivery Assignment</h1>
+
+    <div class="bg-gray-900 rounded-lg shadow-xl p-8 border border-gray-800 transition duration-300 ease-in-out hover:shadow-orange-500/30">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-gray-700 pb-4">
+            <p class="text-2xl font-bold text-white mb-2 md:mb-0">Order ID: <span class="text-yellow-400">#{{ order.id }}</span></p>
+            <p class="text-md text-gray-400 font-medium">Placed At: {{ order.placed_at }}</p>
+        </div>
+        <h2 class="text-xl text-white font-bold mb-3 border-b border-gray-700 pb-2">Customer Details</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+            <p class="text-lg text-white font-semibold">
+                <i class="fas fa-user-circle mr-2 text-yellow-400"></i> Customer: <span class="text-gray-300 font-bold">{{ user.username }}</span>
+            </p>
+            <p class="text-lg text-white font-semibold">
+                <i class="fas fa-phone mr-2 text-yellow-400"></i> Phone: 
+                <a href="tel:{{ user.phone }}" class="text-yellow-300 hover:text-yellow-200 underline font-bold">
+                    {{ user.phone }}
+                </a>
+            </p>
+        </div>
+        
+        {% if order.payment_status == 'paid' %}
+        <div class="mb-6 p-4 rounded-lg bg-green-900/40" id="payment-info-section">
+            <p class="text-3xl font-extrabold text-green-300 flex items-center">
+                <i class="fas fa-receipt mr-3"></i> PAYMENT STATUS: PAID (Online)
+            </p>
+        </div>
+        {% else %}
+        <div class="mb-6 p-4 rounded-lg bg-red-900/40 border-l-4 border-red-500" id="payment-info-section">
+            <p class="text-xl font-extrabold text-white flex items-center mb-1">
+                <i class="fas fa-sack-dollar mr-3 text-red-400"></i> CASH ON DELIVERY (COD)
+            </p>
+            <p class="text-4xl font-extrabold text-red-300 ml-8" id="cod-amount">
+                COLLECT: ₹{{ order.total }}
+            </p>
+            <p class="text-lg text-gray-400 mt-3">
+                <i class="fas fa-sync-alt fa-spin mr-2"></i> Awaiting customer payment verification...
+            </p>
+        </div>
+        {% endif %}
+        <h3 class="mt-6 text-2xl text-white font-bold border-b-2 border-yellow-500 pb-2 mb-4 uppercase tracking-wider">Delivery Details</h3>
+        
+        <div id="customer-address-box" class="sm:text-left text-left w-full sm:w-1/2 mt-3 sm:mt-0 sm:pl-6 border-t sm:border-t-0 sm:border-l border-gray-700 pt-3 sm:pt-0">
+            <p class="text-gray-300 text-lg font-bold mb-1 mt-2">
+                <i class="fas fa-map-marker-alt text-yellow-500 mr-2"></i> Address:
+            </p>
+            
+            <p class="text-gray-200 text-base font-medium ml-6" id="addr-street-road">{{ user.street_road }}</p>
+            <p class="text-gray-200 text-base ml-6">
+                <span id="addr-area">{{ user.area }}</span>, 
+                <span id="addr-ward">{{ user.ward }}</span>
+            </p>
+            <p class="text-gray-200 text-base ml-6">
+                <span id="addr-city">{{ user.city }}</span> - 
+                <span class="font-semibold" id="addr-pincode">{{ user.pincode }}</span>
+            </p>
+            <p class="text-gray-200 text-base ml-6" id="addr-state-country">{{ user.state }}, {{ user.country }}</p>
+            <p class="text-gray-200 text-sm ml-6 font-bold text-yellow-300" id="addr-pickup-point">Landmark: {{ user.pickup_point }}</p>
+        </div>
+        <h3 class="mt-8 text-2xl text-white font-bold border-b-2 border-yellow-500 pb-2 mb-4 uppercase tracking-wider">Items Summary</h3>
+        
+        <div class="grid grid-cols-10 gap-4 text-sm font-bold text-gray-400 uppercase tracking-wider border-b border-gray-600 py-3">
+            <span class="col-span-1 text-center">Qty</span>
+            <span class="col-span-7">Roll / Item Description</span>
+            <span class="col-span-2">Size</span>
+        </div>
+        
+        <div class="space-y-2 mt-4">
+            {% for item in order.items %}
+            <div class="grid grid-cols-10 gap-4 text-base text-gray-200 bg-gray-800 p-3 rounded-md hover:bg-gray-700 transition duration-150 border-l-4 border-orange-500/70">
+                <span class="col-span-1 font-extrabold text-yellow-300 text-center">{{ item.qty }}</span>
+                <span class="col-span-7 font-medium">{{ item.roll_id }}</span>
+                <span class="col-span-2 text-sm text-gray-400 italic">{{ item.size }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if order.payment_status == 'paid' %}
+            <h3 class="mt-8 text-2xl text-white font-bold border-b-2 border-yellow-500 pb-2 mb-4 uppercase tracking-wider">QR Code Verification</h3>
+            <div id="qr-verification-section" 
+                class="bg-gray-800 p-5 rounded-lg mb-8 border border-gray-700"
+                style="{% if order.payment_status != 'paid' %}display: none;{% endif %}">
+                
+                <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border-radius: 8px; overflow: hidden; display: none;"></div>
+
+                <p id="verificationStatus" class="mt-4 text-center text-lg text-gray-300 font-semibold">Click 'Start QR Scanner' to verify the customer's code.</p>
+
+                <form id="qrForm" method="POST" action="">
+                    <div class="flex justify-center mt-6 space-x-4">
+                        <button type="button" id="verifyButton" class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-8 rounded-lg transition duration-200 shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-500/50">
+                            <i class="fas fa-qrcode mr-2"></i> Start QR Scanner
+                        </button>
+                        <button type="button" id="cancelButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition duration-200">
+                            <i class="fas fa-times-circle mr-2"></i> Cancel / Go Back
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        {% else %}
+            <div class="flex flex-col items-center mb-6 p-6 rounded-lg bg-red-900/40 border border-red-700">
+                <p class="text-3xl font-extrabold text-red-300 flex items-center mb-4">
+                    <i class="fas fa-exclamation-triangle mr-3"></i> PAYMENT STATUS: PENDING
+                </p>
+                <p class="text-xl text-white mb-6">Total Due: <span class="text-yellow-400 font-bold">₹{{ '%.2f' | format(order.total) }}</span></p>
+
+                <div class="flex space-x-4 w-full justify-center">
+                    <form method="POST" action="{{ url_for('pay_by_cash', order_id=order.id) }}" class="w-1/2">
+                        <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg">
+                            <i class="fas fa-money-bill-wave mr-2"></i> Paid in CASH
+                        </button>
+                    </form>
+
+                    <button type="button" id="generateQrButton" class="w-1/2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-500/50">
+                        <i class="fas fa-qrcode mr-2"></i> Pay Instantly (QR)
+                    </button>
+                </div>
+            </div>
+
+            <div id="qrCodeContainer" class="hidden w-full max-w-xs mx-auto text-center p-6 bg-gray-800 rounded-lg shadow-2xl border border-gray-700">
+                
+                <div id="qrImage" class="mx-auto w-48 h-48 mb-3 p-1"></div>
+                
+                <p class="text-white font-medium mb-2">Customer: Scan this code to pay</p>
+                
+                <p id="qrStatus" class="text-sm font-semibold text-yellow-400">Click the button above to generate a link.</p>
+            </div>
+            <div class="flex justify-center mt-8">
+                <a href="{{ url_for('delivery_orders') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition duration-200">
+                    <i class="fas fa-times-circle mr-2"></i> Back to Orders
+                </a>
+            </div>       
+            
+        
+        {% endif %}
+
+    </div>
+
+    <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100] transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl border-4 border-green-600 max-w-lg w-full transform scale-75 transition-transform duration-300">
+            
+            <div class="text-center mb-6">
+                <i class="fas fa-receipt text-7xl text-green-400 animate-bounce"></i>
+            </div>
+            
+            <h2 class="text-4xl font-extrabold text-green-300 text-center mb-3">
+                PAYMENT RECEIVED!
+            </h2>
+            <p class="text-xl text-gray-200 text-center mb-6">
+                Order <span id="modalOrderId" class="font-mono font-bold text-yellow-400">#</span> has been successfully paid online by the customer.
+            </p>
+
+            <div class="bg-gray-900 p-4 rounded-xl text-center">
+                <p class="text-yellow-400 font-bold text-lg">
+                    <i class="fas fa-clock mr-2"></i> Redirecting you to the orders list in 
+                    <span id="countdownTimer" class="text-2xl font-extrabold">5</span> seconds...
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='html5-qrcode.min.js') }}"></script>
+
+
+<script>
+    let html5QrCode;
+    let scannerActive = false; // Track scanner state
+    let qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+    const verificationUrl = "{{ url_for('delivery_verify_and_deliver', order_id=order.id) }}";
+
+    // Get elements
+    const qrReaderDiv = document.getElementById('qr-reader');
+    const verifyButton = document.getElementById('verifyButton');
+    const cancelButton = document.getElementById('cancelButton');
+    const statusElement = document.getElementById('verificationStatus');
+
+    window.onload = function() {
+        if (typeof Html5Qrcode === 'undefined') {
+            statusElement.innerHTML = '<span class="text-red-500 font-bold">❌ Fatal Error: QR Code library failed to load.</span>';
+            console.error("Html5Qrcode class is UNDEFINED. Check console/Network tab for 404 on the JS files.");
+            return;
+        }
+
+        try {
+            // Instantiate the scanner.
+            html5QrCode = new Html5Qrcode("qr-reader");
+            console.log("✅ Html5Qrcode instance created.");
+            
+            // --- THE FIX: Attach handlers dynamically AFTER all elements are loaded ---
+            verifyButton.addEventListener('click', startQRScanner);
+            cancelButton.addEventListener('click', stopAndRedirect);
+            // ------------------------------------------------------------------------
+
+        } catch (e) {
+            console.error("❌ Failed to create Html5Qrcode instance:", e);
+        }
+    };
+
+    // --- Core Functions (Defined globally, but called via listener) ---
+
+    async function startQRScanner() {
+        if (!html5QrCode || scannerActive) return; 
+
+        scannerActive = true;
+        
+        statusElement.innerHTML = '<span class="text-yellow-400"><i class="fas fa-video fa-spin mr-2"></i> Actively scanning...</span>';
+        qrReaderDiv.style.display = 'block'; // Show the video container
+        verifyButton.disabled = true;
+
+        try {
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                qrConfig,
+                onScanSuccess, 
+                (errorMessage) => { /* No-op for constant updates */ }
+            );
+        } catch (err) {
+            console.error("❌ Unable to start QR scanner:", err);
+            statusElement.innerHTML = '<span class="text-red-500 font-bold">❌ Error: Could not start camera. Check HTTPS/permissions.</span>';
+            scannerActive = false;
+            verifyButton.disabled = false;
+            qrReaderDiv.style.display = 'none';
+        }
+    }
+
+    async function stopQRScanner() {
+        if (!html5QrCode || !scannerActive) return;
+        
+        await html5QrCode.stop().catch(err => {
+            console.error("❌ Failed to stop scanner cleanly:", err);
+        });
+
+        scannerActive = false;
+        qrReaderDiv.style.display = 'none'; // Hide the video container
+        statusElement.innerHTML = 'Scan stopped. Click \'Start QR Scanner\' to resume.';
+        verifyButton.disabled = false;
+        console.log("🟡 Scanner stopped cleanly.");
+    }
+    
+    function stopAndRedirect() {
+        // Stop the camera first
+        stopQRScanner();
+        
+        // Then redirect to the delivery orders page
+        setTimeout(() => {
+            window.location.href = "{{ url_for('delivery_orders') }}";
+        }, 100); 
+    }
+
+
+    async function onScanSuccess(decodedText) {
+        console.log("✅ QR Code Scanned. Stopping scanner and verifying...");
+        
+        // 1. Stop scanning immediately
+        await stopQRScanner(); 
+        
+        // 2. Show loading state and disable controls
+        statusElement.innerHTML = '<span class="text-yellow-400 font-bold text-lg"><i class="fas fa-spinner fa-spin mr-2"></i> Sending code for verification...</span>';
+        verifyButton.disabled = true;
+        cancelButton.disabled = true;
+        
+        // 3. AJAX Verification
+        try {
+            const response = await fetch(verificationUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qr_code_value: decodedText })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Success: Order Verified and Delivered
+                statusElement.innerHTML = 
+                    '<span class="text-green-500 font-bold text-lg"><i class="fas fa-check-circle mr-2"></i> Verification SUCCESSFUL! Redirecting...</span>';
+                
+                // Redirects to the delivery orders page
+                setTimeout(() => {
+                    window.location.href = "{{ url_for('delivery_orders') }}"; 
+                }, 1000);
+                
+            } else {
+                // Failure (QR Mismatch, Status Check, or other server error)
+                throw new Error(data.message || `Verification failed (Status: ${response.status})`);
+            }
+        } catch (error) {
+            console.error('Verification Error:', error);
+            
+            // 4. Handle Failure: Display error and restart scanner
+            let displayMessage = error.message.includes("QR Code Mismatch") 
+                ? "Verification FAILED: Wrong QR Code. Please re-scan." 
+                : `${error.message}. Please try again.`;
+
+            statusElement.innerHTML = 
+                `<span class="text-red-500 font-bold text-lg"><i class="fas fa-times-circle mr-2"></i> ${displayMessage}</span>`;
+
+            // Re-enable controls and restart scanner after a short delay
+            cancelButton.disabled = false;
+            
+            setTimeout(() => {
+                html5QrCode.clear(); // Clear the view
+                startQRScanner(); // Restart the scanner
+            }, 3000);
+        }
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Assume order.id is available from the Flask context
+        const orderId = {{ order.id }}; 
+
+        // --- QR PAYMENT LOGIC (for unpaid orders) ---
+        const generateButton = document.getElementById('generateQrButton');
+        const qrCodeContainer = document.getElementById('qrCodeContainer');
+        const qrImage = document.getElementById('qrImage');
+        const qrStatus = document.getElementById('qrStatus');
+        const totalDue = parseFloat("{{ order.total }}").toFixed(2);
+        
+        if (generateButton) {
+            // FIX 1: Correctly wrap the function call to pass the orderId argument
+            generateButton.addEventListener('click', () => generateStripeQrCode(orderId));
+        }
+
+        async function generateStripeQrCode(orderId) {
+            const generateQrButton = document.getElementById('generateQrButton');
+            const qrImage = document.getElementById('qrImage'); // Ensure this is the DIV element
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            const qrStatus = document.getElementById('qrStatus');
+            
+            // 1. Show loading state
+            generateQrButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generating Link...';
+            generateQrButton.disabled = true;
+            qrStatus.textContent = 'Contacting server to generate payment link...';
+            
+            let response;
+            try {
+                // --- 2. Fetch Request ---
+                response = await fetch(`/delivery/generate_payment_link/${orderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const contentType = response.headers.get('content-type');
+                
+                if (!response.ok && (!contentType || !contentType.includes('application/json'))) {
+                    throw new Error("Server returned an unexpected response format. Session may have expired. Please refresh.");
+                }
+
+                const data = await response.json();
+
+                if (response.ok) { // Status 200 OK - SUCCESS BLOCK
+                    
+                    // **FIX: paymentUrl is correctly declared and used ONLY here**
+                    const paymentUrl = data.url; 
+                    
+                    // 1. Clear any existing QR code before generating a new one
+                    qrImage.innerHTML = ''; 
+                    console.log("🟢 Generating QR code for URL:", paymentUrl);
+                    
+                    // 2. Instantiate the QRCode generator (Requires the qrcode.js library)
+                    new QRCode(document.getElementById("qrImage"), {
+                        text: paymentUrl, // The payment link from the server
+                        width: 500,
+                        height: 500,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff", 
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+
+                    // Update UI
+                    qrCodeContainer.classList.remove('hidden');
+                    qrStatus.innerHTML = '<span class="text-green-400 font-bold">QR Generated! Show to Customer.</span>';
+                    generateQrButton.innerHTML = '<i class="fas fa-link mr-2"></i> Payment Link Generated';
+                    
+                } else {
+                    // Failure (400, 403, 500 JSON error)
+                    console.error('Server Error:', data.message);
+                    
+                    qrStatus.innerHTML = 
+                        `<span class="text-red-500 font-bold text-sm"><i class="fas fa-times-circle mr-2"></i> Error: ${data.message || 'Server error generating link.'}</span>`;
+                    
+                    generateQrButton.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Pay Instantly (QR)';
+                    generateQrButton.disabled = false;
+                }
+
+            } catch (error) {
+                // Network error or our custom HTML check error
+                console.error('Fetch Error:', error);
+                qrStatus.innerHTML = 
+                    `<span class="text-red-500 font-bold text-sm"><i class="fas fa-times-circle mr-2"></i> ${error.message || 'Network Error. Check connection.'}</span>`;
+                
+                generateQrButton.innerHTML = '<i class="fas fa-qrcode mr-2"></i> Pay Instantly (QR)';
+                generateQrButton.disabled = false;
+            }
+        }
+
+        
+        
+        // --- QR VERIFICATION LOGIC (for paid orders) ---
+        // Note: The logic here is redundant with the first script block. 
+        // I am leaving it for completeness, but typically you would only have one scanner logic section.
+        const qrScannerContainer = document.getElementById('qrScannerContainer');
+
+        // Check if we need the verification logic (i.e., if 'paid' status is active)
+        if (verifyButton) {
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            let isScanning = false;
+            
+            verifyButton.addEventListener('click', () => {
+                if (!isScanning) {
+                    // The first script block already handles startQRScanner, so this part is technically redundant.
+                }
+            });
+        }
+        
+    });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io(); // Connects to the default namespace
+    let isConnected = false;
+    // Define customerId here to be accessible by the location_update listener
+    // This assumes your Flask context provides 'user' (the customer)
+    const customerId = {{ user.id }}; 
+    
+    // --- 1. Connection Handlers with Fallback ---
+    socket.on('connect', function() {
+        console.log('Connected to WebSocket server.');
+        isConnected = true;
+    });
+
+    // IMPLEMENTATION OF THE FALLBACK
+    socket.on('connect_error', function(error) {
+        // Only trigger the fallback if the initial connection failed
+        if (!isConnected) {
+            console.error('WebSocket initial connection failed for payment listener. Error:', error);
+            console.log('Falling back to page refresh in 3 seconds...');
+            
+            // Set a timeout to prevent an immediate, continuous refresh loop
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000); 
+        }
+    });
+
+    socket.on('location_update', function(data) {
+        // ROBUST FILTER: Check if the user_id in the broadcast data matches the customer ID on this page.
+        if (data.user_id === customerId) { 
+            console.log('Customer address update received and verified:', data);
+            
+            const newAddress = data;
+            
+            // 1. Update individual address fields
+            document.getElementById('addr-street-road').textContent = newAddress.street_road || 'N/A';
+            document.getElementById('addr-ward').textContent = newAddress.ward || 'N/A';
+            document.getElementById('addr-area').textContent = newAddress.area || 'N/A';
+            document.getElementById('addr-pincode').textContent = newAddress.pincode || 'N/A';
+            // Assuming 'city' is derived or included in your data structure, update it:
+            document.getElementById('addr-city').textContent = newAddress.city || 'N/A'; 
+
+            // 2. Update combined/multi-field elements
+            const stateCountryElement = document.getElementById('addr-state-country');
+            if (stateCountryElement) {
+                stateCountryElement.textContent = `${newAddress.state || ''}, ${newAddress.country || ''}`;
+            }
+
+            const pickupElement = document.getElementById('addr-pickup-point');
+            if (pickupElement) {
+                pickupElement.textContent = `Landmark: ${newAddress.pickup_point || ''}`;
+            }
+
+            // 3. Visual Cue: Flash the container to notify the driver
+            const container = document.getElementById('customer-address-box');
+            if (container) {
+                container.classList.add('bg-yellow-800/50', 'ring-4', 'ring-yellow-400', 'transition', 'duration-500');
+                setTimeout(() => {
+                    container.classList.remove('bg-yellow-800/50', 'ring-4', 'ring-yellow-400');
+                }, 3000); // Flash for 3 seconds
+            }
+        } else {
+            // Log that a broadcast was received but ignored because it was for a different customer
+            console.log(`Ignored location update for user ID: ${data.user_id}. Current customer ID: ${customerId}`);
+        }
+    });
+
+    // --- 2. Order Payment Event Handler ---
+    socket.on('order_paid', function(data) {
+        const currentOrderId = {{ order.id }}; 
+        const modal = document.getElementById('paymentModal');
+        const modalOrderId = document.getElementById('modalOrderId');
+        const timer = document.getElementById('countdownTimer');
+        
+        // Check if the event is for the order currently being viewed
+        if (data.order_id === currentOrderId) {
+            
+            // 1. Update UI (Optional: change the status section immediately)
+            const statusSection = document.getElementById('payment-info-section'); // Targeted correct ID
+            if (statusSection) {
+                statusSection.innerHTML = `
+                    <div class="mb-6 p-4 rounded-lg bg-green-900/40">
+                        <p class="text-3xl font-extrabold text-green-300 flex items-center">
+                            <i class="fas fa-receipt mr-3"></i> PAYMENT STATUS: PAID (ONLINE)
+                        </p>
+                        <p class="text-xl font-bold text-green-300 ml-8">
+                            Order delivered!
+                        </p>
+                    </div>
+                `;
+                // Also hide the COD section below, which might be easier to target by a parent container
+                const codSection = document.querySelector('.flex-col.items-center.mb-6.p-6.rounded-lg.bg-red-900\\/40.border.border-red-700');
+                if (codSection) {
+                    codSection.style.display = 'none';
+                }
+            }
+
+            // 2. Show the modal pop-up
+            modalOrderId.textContent = `#${data.order_id}`;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('div').classList.remove('scale-75');
+            modal.classList.add('opacity-100');
+            modal.querySelector('div').classList.add('scale-100');
+
+            // 3. Start the 5-second countdown and redirection
+            let count = 5;
+            timer.textContent = count;
+
+            const countdownInterval = setInterval(() => {
+                count--;
+                timer.textContent = count;
+
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    
+                    // Hide the modal with transition
+                    modal.classList.remove('opacity-100');
+                    modal.classList.add('opacity-0');
+                    
+                    // Redirect after transition
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('delivery_orders') }}"; 
+                    }, 300); 
+                }
+            }, 1000); // Update every second
+        }
+    });
+</script>
+{% endblock %}
