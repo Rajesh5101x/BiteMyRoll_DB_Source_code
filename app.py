@@ -1599,8 +1599,8 @@ def google_logged_in(blueprint, token):
 
 
 
-app.config["GITHUB_OAUTH_CLIENT_ID"] = ""
-app.config["GITHUB_OAUTH_CLIENT_SECRET"] = ""
+app.config["GITHUB_OAUTH_CLIENT_ID"] = "Ov23li0PsCxqzaPuKuTd"
+app.config["GITHUB_OAUTH_CLIENT_SECRET"] = "a9d5a2a3a4a8d664d791096d5660c3414db9e91a"
 
 from flask_dance.contrib.github import make_github_blueprint, github
 
@@ -1681,8 +1681,8 @@ def add_phone():
 import stripe
 from flask import jsonify
 
-app.config["STRIPE_SECRET_KEY"] = ""
-app.config["STRIPE_PUBLISHABLE_KEY"] = ""
+app.config["STRIPE_SECRET_KEY"] = "sk_test_51S4MaPJxbaHWh73eWlw79jWhh0kqZ1BcYVSXyx0ZgWQCJDYSnrBRl6LFlHPWxC791lEkP9GAjRf7PjuW9fqtm4a8000UtYEo5Y"
+app.config["STRIPE_PUBLISHABLE_KEY"] = "pk_test_51S4MaPJxbaHWh73eGGO1GODC79dVb1ZJoMhdh8nQNMqgxAWt4qDyz0NgdCjywTPhlZrg3r928TKTYOscrCq83WrJ00wHsCXhAL"
 
 stripe.api_key = app.config["STRIPE_SECRET_KEY"]
 
