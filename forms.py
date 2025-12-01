@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, IntegerField, DateField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, Email, Optional, NumberRange, EqualTo
+from wtforms import StringField, SelectField, IntegerField, DateField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms.validators import DataRequired, Length, Email, Optional, NumberRange, EqualTo, Regexp
 
 
 class signupForm(FlaskForm):
@@ -20,6 +20,8 @@ class signupForm(FlaskForm):
         ]
     ) 
 
+
+
     gender = SelectField(
         "Gender",
         choices = [(None,"--Choose Gender--"),("Male","Male"), ("Female","Female"), ("Others","Others")],
@@ -35,7 +37,13 @@ class signupForm(FlaskForm):
         ]
     )
 
-
+    phone = StringField(
+        "Phone Number",
+        validators=[
+            DataRequired(),
+            Regexp(r'^[0-9]{10}$', message="Enter a valid 10-digit phone number")
+        ]
+    )
 
     password = PasswordField(
         "Password",
@@ -95,3 +103,35 @@ class ChangePasswordForm(FlaskForm):
     )
     submit = SubmitField("Change Password")
 
+
+
+class ContactForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    category = SelectField('Category', choices=[
+        ('feedback', 'Feedback'),
+        ('complaint', 'Complaint'),
+        ('suggestion', 'Suggestion')
+    ], validators=[DataRequired()])
+    message = TextAreaField('Message', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+
+
+class ForgotPasswordForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Send Reset Link')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
+
+
+class CreateUserForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=2, max=100)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    role = SelectField('Role', choices=[('2', 'Staff'), ('3', 'Delivery Boy')], coerce=int)
+    submit = SubmitField('Create User')
