@@ -43,11 +43,10 @@ BASE_DIR = Path(__file__).parent
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY="change-this-in-prod",
-    SQLALCHEMY_DATABASE_URI=f"sqlite:///{BASE_DIR / 'bitemyroll.db'}",
+    SQLALCHEMY_DATABASE_URI=f"mysql+pymysql://BiteMyRollOffici:rr9437664323@BiteMyRollOfficial.mysql.pythonanywhere-services.com/BiteMyRollOffici$BiteMyRoll2",
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     REMEMBER_COOKIE_DURATION=timedelta(days=30),
-    PERMANENT_SESSION_LIFETIME=timedelta(minutes=1440),
-    SERVER_NAME=f'{get_lan_ip()}:5000'
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=1440)
 )
 
 #SERVER_NAME='192.168.43.187:5000', 
